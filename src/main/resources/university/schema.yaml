@@ -1,0 +1,142 @@
+relations:
+  - "name": "student"
+    "identifier": [ "u_uid" ]
+    "attributes":
+      - "name": "u_uid"
+        "datatype":
+          "name": "int"
+          "upper": 1000
+          "lower": 0
+          "nullable": false
+          "unique": true
+      - "name": "u_name"
+        "datatype":
+          "name": "text"
+          "max_length": 64
+          "nullable": false
+          "unique": false
+      - "name": "u_major"
+        "datatype":
+          "name": "text"
+          "max_length": 64
+          "nullable": false
+          "unique": false
+
+  - "name": "faculty"
+    "identifier": [ "f_fid" ]
+    "attributes":
+      - "name": "f_fid"
+        "datatype":
+          "name": "int"
+          "upper": 1000
+          "lower": 0
+          "nullable": false
+          "unique": true
+      - "name": "f_name"
+        "datatype":
+          "name": "text"
+          "max_length": 64
+          "nullable": false
+          "unique": false
+      - "name": "f_salary"
+        "datatype":
+          "name": "decimal"
+          "upper": 1000000
+          "lower": 0
+          "scale": 2
+          "precision": 15
+          "nullable": false
+          "unique": false
+
+  - "name": "course"
+    "identifier": [ "c_cid" ]
+    "attributes":
+      - "name": "c_cid"
+        "datatype":
+          "name": "int"
+          "upper": 1000
+          "lower": 0
+          "nullable": false
+          "unique": true
+      - "name": "c_title"
+        "datatype":
+          "name": "text"
+          "max_length": 64
+          "nullable": false
+          "unique": false
+      - "name": "c_credits"
+        "datatype":
+          "name": "int"
+          "upper": 3
+          "lower": 0
+          "nullable": false
+          "unique": false
+
+  - "name": "section"
+    "identifier": [ "s_sid" ]
+    "attributes":
+      - "name": "s_sid"
+        "datatype":
+          "name": "int"
+          "upper": 1000
+          "lower": 0
+          "nullable": false
+          "unique": true
+      - "name": "s_fid"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "faculty"
+          "to_attribute": "f_fid"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "s_cid"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "course"
+          "to_attribute": "c_cid"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "s_term"
+        "datatype":
+          "name": "text"
+          "max_length": 64
+          "nullable": false
+          "unique": false
+
+  - "name": "enrollment"
+    "identifier": [ "e_eid" ]
+    "attributes":
+      - "name": "e_eid"
+        "datatype":
+          "name": "int"
+          "upper": 1000
+          "lower": 0
+          "nullable": false
+          "unique": true
+      - "name": "e_sid"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "section"
+          "to_attribute": "s_sid"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "e_uid"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "student"
+          "to_attribute": "u_uid"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "e_grade"
+        "datatype":
+          "name": "decimal"
+          "upper": 100
+          "lower": 0
+          "scale": 2
+          "precision": 15
+          "nullable": false
+          "unique": false

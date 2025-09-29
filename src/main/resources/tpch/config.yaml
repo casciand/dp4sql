@@ -1,0 +1,585 @@
+type_mappings:
+  text: VARCHAR
+  int: INTEGER
+  decimal: DECIMAL
+  categorical: VARCHAR
+  foreign_key: VARCHAR
+  datetime: DATE
+  default: ANY
+
+sql_dialects:
+  mysql: MysqlSqlDialect.DEFAULT
+  postgresql: PostgresqlSqlDialect.DEFAULT
+  hive: HiveSqlDialect.DEFAULT
+  default: CalciteSqlDialect.DEFAULT
+
+schema_path: "src/main/resources/tpch/schema.yaml"
+
+privacy_models:
+  model1: "src/main/resources/tpch/privacy_models/model1.yaml"
+  model2: "src/main/resources/tpch/privacy_models/model2.yaml"
+  model3: "src/main/resources/tpch/privacy_models/model3.yaml"
+
+queries:
+  1: "
+  SELECT  
+          l_returnflag, 
+          l_linestatus,
+          sum(l_quantity) AS sum_qty,
+          sum(l_extendedprice) AS sum_base_price,
+          sum(l_extendedprice*(1-l_discount)) AS sum_disc_price,
+          sum(l_extendedprice*(1-l_discount)*(1+l_tax)) AS sum_charge,
+          avg(l_quantity) AS avg_qty,
+          avg(l_extendedprice) AS avg_price,
+          avg(l_discount) AS avg_disc,
+          count(*) AS count_order
+  FROM 
+          lineitem
+  WHERE
+          l_shipdate <= date '1998-12-01' - INTERVAL '60' day (3)
+  GROUP BY
+          l_returnflag,
+          l_linestatus
+  ORDER BY
+          l_returnflag,
+          l_linestatus
+  "
+  2: "
+  SELECT
+          s_acctbal, 
+          s_name, 
+          n_name, 
+          p_partkey,
+          p_mfgr, 
+          s_address, 
+          s_phone, 
+          s_comment
+  FROM 
+          part
+  INNER JOIN partsupp ON p_partkey = ps_partkey
+  INNER JOIN supplier ON ps_suppkey = s_suppkey
+  INNER JOIN nation ON s_nationkey = n_nationkey
+  INNER JOIN region ON n_regionkey = r_regionkey
+  WHERE     
+          p_size = 15
+          AND p_type like '%BRASS'
+          AND r_name = 'EUROPE' 
+          AND ps_supplycost = (
+            SELECT  min(ps_supplycost)
+            FROM partsupp
+            INNER JOIN part ON ps_partkey = p_partkey
+            INNER JOIN supplier ON ps_suppkey = s_suppkey 
+            INNER JOIN nation ON s_nationkey = n_nationkey
+            INNER JOIN region ON n_regionkey = r_regionkey
+            WHERE r_name = 'EUROPE'
+          )
+  ORDER BY  
+          s_acctbal DESC, 
+          n_name, 
+          s_name, 
+          p_partkey 
+  "
+  3: "
+  SELECT 
+          l_orderkey, 
+          SUM(l_extendedprice*(1-l_discount)) AS revenue,
+          o_orderdate, 
+          o_shippriority
+  FROM 
+          customer
+  INNER JOIN orders ON c_custkey = o_custkey
+  INNER JOIN lineitem ON o_orderkey = l_orderkey
+  WHERE 
+          c_mktsegment = 'BUILDING'
+          AND o_orderdate < date '1995-03-15'
+          AND l_shipdate > date '1995-03-15'
+  GROUP BY 
+          l_orderkey, 
+          o_orderdate, 
+          o_shippriority
+  ORDER BY 
+          revenue DESC, 
+          o_orderdate
+  "
+  4: "
+    SELECT 
+            o_orderpriority, 
+            count(*) AS order_count
+    FROM  
+            orders
+    WHERE 
+            o_orderdate >= date '1993-07-01'
+            AND o_orderdate < date '1993-07-01' + interval '3' month
+            AND exists (
+              SELECT 
+                      * 
+              FROM 
+                      lineitem
+              WHERE 
+                      l_orderkey = o_orderkey
+                      AND l_commitdate < l_receiptdate
+            )
+    GROUP BY 
+            o_orderpriority
+    ORDER BY 
+            o_orderpriority
+  "
+  5: "
+  SELECT 
+          n_name, 
+          SUM(l_extendedprice * (1 - l_discount)) AS revenue
+  FROM 
+          customer
+  INNER JOIN orders ON c_custkey = o_custkey
+  INNER JOIN lineitem ON o_orderkey = l_orderkey 
+  INNER JOIN supplier ON l_suppkey = s_suppkey AND c_nationkey = s_nationkey
+  INNER JOIN nation ON s_nationkey = n_nationkey
+  INNER JOIN region ON n_regionkey = r_regionkey
+  WHERE 
+          r_name = 'ASIA'
+          AND o_orderdate >= date '1994-01-01'
+          AND o_orderdate < date '1994-01-01' + interval '1' year
+  GROUP BY 
+          n_name
+  ORDER BY 
+          revenue desc
+  "
+  6: "
+  SELECT 
+          SUM(l_extendedprice*l_discount) AS revenue
+  FROM 
+          lineitem
+  WHERE 
+          l_shipdate >= date '1994-01-01'
+          AND l_shipdate < date '1994-01-01' + interval '1' year
+          AND l_discount between 0.06 - 0.01 AND 0.06 + 0.01
+          AND l_quantity < 24
+  "
+  7: "
+  SELECT 
+          supp_nation, 
+          cust_nation, 
+          l_year, 
+          SUM(volume) AS revenue
+  FROM (
+          SELECT 
+                  n1.n_name AS supp_nation, 
+                  n2.n_name AS cust_nation,
+                  extract(year FROM l_shipdate) AS l_year, 
+                  l_extendedprice * (1 - l_discount) AS volume
+          FROM 
+                  supplier
+          INNER JOIN lineitem ON s_suppkey = l_suppkey
+          INNER JOIN orders ON l_orderkey = o_orderkey
+          INNER JOIN customer ON o_custkey = c_custkey
+          INNER JOIN nation AS n1 ON s_nationkey = n1.n_nationkey
+          INNER JOIN nation AS n2 ON c_nationkey = n2.n_nationkey
+          WHERE (
+                  (n1.n_name = 'FRANCE' AND n2.n_name = 'GERMANY')
+                  OR (n1.n_name = 'GERMANY' AND n2.n_name = 'FRANCE')
+                )
+                AND l_shipdate between date '1995-01-01' AND date '1996-12-31'
+          ) AS shipping
+  GROUP BY 
+          supp_nation, 
+          cust_nation, 
+          l_year
+  ORDER BY 
+          supp_nation, 
+          cust_nation, 
+          l_year
+  "
+  8: "
+  SELECT 
+          o_year, 
+          SUM(case
+                  when nation = 'BRAZIL'
+                  then volume
+                  else 0
+          end) / SUM(volume) AS mkt_share
+  FROM (
+          SELECT
+                  extract(year FROM o_orderdate) AS o_year,
+                  l_extendedprice * (1-l_discount) AS volume,
+                  n2.n_name AS nation
+          FROM 
+                  part
+          INNER JOIN lineitem ON p_partkey = l_partkey
+          INNER JOIN supplier ON l_suppkey = s_suppkey
+          INNER JOIN orders ON l_orderkey = o_orderkey
+          INNER JOIN customer ON o_custkey = c_custkey
+          INNER JOIN nation AS n1 ON c_nationkey = n1.n_nationkey
+          INNER JOIN nation AS n2 ON s_nationkey = n2.n_nationkey
+          INNER JOIN region ON n1.n_regionkey = r_regionkey
+          WHERE 
+                  r_name = 'AMERICA'
+                  AND o_orderdate between date '1995-01-01' AND date '1996-12-31'
+                  AND p_type = 'ECONOMY ANODIZED STEEL'
+       ) AS all_nations
+  GROUP BY 
+          o_year
+  ORDER BY 
+          o_year
+  "
+  9: "
+  SELECT 
+          nation, 
+          o_year, 
+          SUM(amount) AS sum_profit
+  FROM (
+          SELECT 
+                  n_name AS nation,
+                  extract(year from o_orderdate) AS o_year,
+                  l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity AS amount
+          FROM 
+                  supplier
+          INNER JOIN lineitem ON s_suppkey = l_suppkey
+          INNER JOIN partsupp ON l_suppkey = ps_suppkey AND l_partkey = ps_partkey
+          INNER JOIN part ON l_partkey = p_partkey
+          INNER JOIN orders ON l_orderkey = o_orderkey
+          INNER JOIN nation ON s_nationkey = n_nationkey
+          WHERE
+                  p_name LIKE '%green%'
+      ) AS profit
+  GROUP BY 
+          nation, 
+          o_year
+  ORDER BY 
+          nation, 
+          o_year DESC
+  "
+  10: "
+  SELECT 
+          c_custkey, 
+          c_name,
+          SUM(l_extendedprice * (1 - l_discount)) as revenue,
+          c_acctbal, 
+          n_name, 
+          c_address, 
+          c_phone, 
+          c_comment
+  FROM 
+          customer
+  INNER JOIN orders ON c_custkey = o_custkey
+  INNER JOIN lineitem ON o_orderkey = l_orderkey
+  INNER JOIN nation ON c_nationkey = n_nationkey
+  WHERE 
+          o_orderdate >= date '1993-10-01'
+          AND o_orderdate < date '1993-10-01' + interval '3' month
+          AND l_returnflag = 'R'
+  GROUP BY 
+          c_custkey, 
+          c_name, 
+          c_acctbal, 
+          c_phone,
+          n_name, 
+          c_address, 
+          c_comment
+  ORDER BY 
+          revenue DESC
+  "
+  11: "
+  SELECT 
+          ps_partkey, 
+          SUM(ps_supplycost * ps_availqty) as val
+  FROM partsupp
+  INNER JOIN supplier ON ps_suppkey = s_suppkey
+  INNER JOIN nation ON s_nationkey = n_nationkey
+  WHERE
+          n_name = 'GERMANY'
+  GROUP BY
+          ps_partkey HAVING
+            SUM(ps_supplycost * ps_availqty) > (
+              SELECT
+                      sum(ps_supplycost * ps_availqty) * 0.0001
+              FROM
+                      partsupp
+              INNER JOIN supplier ON ps_suppkey = s_suppkey
+              INNER JOIN nation ON s_nationkey = n_nationkey
+              WHERE
+                      n_name = 'GERMANY'
+            )
+  ORDER BY 
+          val DESC
+  "
+  12: "
+  SELECT 
+          l_shipmode,
+          SUM(case 
+                  when o_orderpriority = '1-URGENT'
+                      or o_orderpriority = '2-HIGH'
+                      then 1
+                      else 0
+          end) as high_line_count,
+          SUM(case 
+                  when o_orderpriority <> '1-URGENT'
+                      and o_orderpriority <> '2-HIGH'
+                      then 1
+                      else 0
+          end) as low_line_count
+  FROM
+          orders
+  INNER JOIN lineitem ON o_orderkey = l_orderkey
+  WHERE 
+          l_shipmode IN ('MAIL', 'SHIP')
+          AND l_commitdate < l_receiptdate
+          AND l_shipdate < l_commitdate
+          AND l_receiptdate >= date '1994-01-01'
+          AND l_receiptdate < date '1994-01-01' + interval '1' year
+  GROUP BY 
+          l_shipmode
+  ORDER BY 
+          l_shipmode
+  "
+  13: "
+  SELECT 
+          c_count, 
+          count(*) as custdist
+  FROM (
+          SELECT 
+                  c_custkey, 
+                  count(o_orderkey)
+          FROM customer 
+          LEFT OUTER JOIN orders on c_custkey = o_custkey
+          WHERE o_comment NOT LIKE '%special%requests%'
+          GROUP BY c_custkey
+  ) as c_orders (c_custkey, c_count)
+  GROUP BY 
+          c_count
+  ORDER BY 
+          custdist DESC,
+          c_count DESC
+  "
+  14: "
+  SELECT
+          100.00 * SUM(case
+                              when p_type LIKE 'PROMO%'
+                              then l_extendedprice*(1-l_discount)
+                              else 0
+                      end) / sum(l_extendedprice * (1 - l_discount)) as promo_revenue
+  FROM
+          lineitem
+  INNER JOIN part ON l_partkey = p_partkey
+  WHERE
+          l_shipdate >= date '1996-01-01'
+          AND l_shipdate < date '1996-01-01' + interval '1' month
+  "
+  16: "
+  SELECT
+          p_brand,
+          p_type,
+          p_size,
+          COUNT(DISTINCT ps_suppkey) AS supplier_cnt
+  FROM
+          partsupp
+  INNER JOIN part ON ps_partkey = p_partkey
+  WHERE
+          p_brand <> 'Brand#45'
+          AND p_type NOT LIKE 'MEDIUM POLISHED%'
+          AND p_size IN (49, 14, 23, 45, 19, 3, 36, 9)
+          AND ps_suppkey NOT IN (
+                  SELECT
+                          s_suppkey
+                  FROM
+                          supplier
+                  WHERE
+                          s_comment LIKE '%Customer%Complaints%'
+          )
+  GROUP BY
+          p_brand,
+          p_type,
+          p_size
+  ORDER BY
+          supplier_cnt DESC,
+          p_brand,
+          p_type,
+          p_size
+  "
+  17: "
+  SELECT
+          SUM(l_extendedprice) / 7.0 AS avg_yearly
+  FROM
+          lineitem
+  INNER JOIN part ON l_partkey = p_partkey
+  WHERE
+          p_brand = 'Brand#23'
+          AND p_container = 'MED BOX'
+          AND l_quantity < (
+                  SELECT
+                          0.2 * AVG(l_quantity)
+                  FROM
+                          lineitem
+                  WHERE
+                          l_partkey = p_partkey
+          )
+  "
+  18: "
+  SELECT
+          c_name,
+          c_custkey,
+          o_orderkey,
+          o_orderdate,
+          o_totalprice,
+          SUM(l_quantity) AS total_quantity
+  FROM
+          customer
+  INNER JOIN orders ON c_custkey = o_custkey
+  INNER JOIN lineitem ON o_orderkey = l_orderkey
+  WHERE
+          o_orderkey IN (
+                  SELECT
+                          l_orderkey
+                  FROM
+                          lineitem
+                  GROUP BY
+                          l_orderkey
+                  HAVING
+                          SUM(l_quantity) > 300
+          )
+  GROUP BY
+          c_name,
+          c_custkey,
+          o_orderkey,
+          o_orderdate,
+          o_totalprice
+  ORDER BY
+          o_totalprice DESC,
+          o_orderdate
+  "
+  19: "
+  SELECT
+          SUM(l_extendedprice * (1 - l_discount)) AS revenue
+  FROM
+          lineitem
+  INNER JOIN part ON l_partkey = p_partkey
+  WHERE
+          (
+            p_brand = 'Brand#12'
+            AND p_container IN ('SM CASE', 'SM BOX', 'SM PACK', 'SM PKG')
+            AND l_quantity >= 1 AND l_quantity <= 1 + 10
+            AND p_size BETWEEN 1 AND 5
+            AND l_shipmode IN ('AIR', 'AIR REG')
+            AND l_shipinstruct = 'DELIVER IN PERSON'
+          )
+          OR
+          (
+            p_brand = 'Brand#23'
+            AND p_container IN ('MED BAG', 'MED BOX', 'MED PKG', 'MED PACK')
+            AND l_quantity >= 10 AND l_quantity <= 10 + 10
+            AND p_size BETWEEN 1 AND 10
+            AND l_shipmode IN ('AIR', 'AIR REG')
+            AND l_shipinstruct = 'DELIVER IN PERSON'
+          )
+          OR
+          (
+            p_brand = 'Brand#34'
+            AND p_container IN ('LG CASE', 'LG BOX', 'LG PACK', 'LG PKG')
+            AND l_quantity >= 20 AND l_quantity <= 20 + 10
+            AND p_size BETWEEN 1 AND 15
+            AND l_shipmode IN ('AIR', 'AIR REG')
+            AND l_shipinstruct = 'DELIVER IN PERSON'
+          )
+  "
+  20: "
+  SELECT
+          s_name,
+          s_address
+  FROM
+          supplier
+  INNER JOIN nation ON s_nationkey = n_nationkey
+  WHERE
+          s_suppkey IN (
+                  SELECT 
+                          ps_suppkey
+                  FROM 
+                          partsupp
+                  WHERE 
+                          ps_partkey IN (
+                                  SELECT 
+                                          p_partkey
+                                  FROM 
+                                          part
+                                  WHERE 
+                                          p_name LIKE 'forest%'
+                          )
+                  AND 
+                          ps_availqty > (
+                            SELECT 
+                                    0.5 * SUM(l_quantity)
+                            FROM 
+                                    lineitem
+                            INNER JOIN partsupp ON l_partkey = ps_partkey AND l_suppkey = ps_suppkey
+                            WHERE 
+                                    l_shipdate >= DATE '1994-01-01'
+                                    AND l_shipdate < DATE '1994-01-01' + INTERVAL '1' YEAR
+                          )
+          )
+          AND n_name = 'CANADA'
+  ORDER BY 
+          s_name
+  "
+  21: "
+  SELECT
+          s_name,
+          COUNT(*) AS numwait
+  FROM
+          supplier
+  INNER JOIN lineitem AS l1 ON s_suppkey = l1.l_suppkey
+  INNER JOIN orders ON l1.l_orderkey = o_orderkey
+  INNER JOIN nation ON s_nationkey = n_nationkey
+  WHERE
+        o_orderstatus = 'F'
+        AND l1.l_receiptdate > l1.l_commitdate
+        AND EXISTS (
+              SELECT 1
+              FROM lineitem l2
+              WHERE l2.l_orderkey = l1.l_orderkey
+                AND l2.l_suppkey <> l1.l_suppkey
+        )
+        AND NOT EXISTS (
+              SELECT 1
+              FROM lineitem l3
+              WHERE l3.l_orderkey = l1.l_orderkey
+                AND l3.l_suppkey <> l1.l_suppkey
+                AND l3.l_receiptdate > l3.l_commitdate
+        )
+        AND n_name = 'SAUDI ARABIA'
+  GROUP BY 
+          s_name
+  ORDER BY 
+          numwait DESC, 
+          s_name
+  "
+  22: "
+  SELECT
+        cntrycode,
+        COUNT(*) AS numcust,
+        SUM(c_acctbal) AS totacctbal
+  FROM (
+        SELECT
+                SUBSTRING(c_phone FROM 1 FOR 2) AS cntrycode,
+                c_acctbal
+        FROM 
+                customer
+        WHERE
+                SUBSTRING(c_phone FROM 1 FOR 2) IN ('13', '31', '23', '29', '30', '18', '17')
+                AND c_acctbal > (
+                  SELECT 
+                          AVG(c_acctbal)
+                  FROM 
+                          customer
+                  WHERE
+                          c_acctbal > 0.00
+                          AND SUBSTRING(c_phone FROM 1 FOR 2) IN ('13', '31', '23', '29', '30', '18', '17')
+                )
+                AND NOT EXISTS (
+                  SELECT 1
+                  FROM orders
+                  INNER JOIN customer ON o_custkey = c_custkey
+                )
+        ) AS custsale
+  GROUP BY 
+          cntrycode
+  ORDER BY 
+          cntrycode
+  "

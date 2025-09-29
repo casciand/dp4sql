@@ -1,0 +1,39 @@
+type_mappings:
+  text: VARCHAR
+  int: INTEGER
+  decimal: DECIMAL
+  categorical: VARCHAR
+  foreign_key: VARCHAR
+  datetime: DATE
+  default: ANY
+
+sql_dialects:
+  mysql: MysqlSqlDialect.DEFAULT
+  postgresql: PostgresqlSqlDialect.DEFAULT
+  hive: HiveSqlDialect.DEFAULT
+  default: CalciteSqlDialect.DEFAULT
+
+schema_path: "src/main/resources/university/schema.yaml"
+
+privacy_models:
+  model1: "src/main/resources/university/privacy_models/model1.yaml"
+  model2: "src/main/resources/university/privacy_models/model2.yaml"
+
+queries:
+  # Names of Faculty teaching Physics in Fall 2024
+  1: "
+  SELECT f_name
+  FROM faculty
+  INNER JOIN section ON f_fid = s_fid
+  INNER JOIN course ON s_cid = c_cid
+  WHERE c_title LIKE 'Physics' AND s_term LIKE 'f24'
+  "
+
+  # Average salary of Faculty teaching at least one 3-credit course
+  2: "
+  SELECT avg(f_salary)
+  FROM faculty
+  INNER JOIN section ON f_fid = s_fid
+  INNER JOIN course ON s_cid = c_cid
+  WHERE c_credits = 3
+  "

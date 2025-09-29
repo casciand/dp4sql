@@ -1,0 +1,3 @@
+package CustomDP4SQL.PrivacyModel.Action
+
+trait PlausibleDeniabilityAction

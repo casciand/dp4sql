@@ -1,0 +1,171 @@
+relations:
+  - "name": "nation"
+    "global_entity": false
+    "privacy_policy":
+      "name": "PUB"
+    "attributes":
+      - "name": "n_nationkey"
+        "max_frequency": 1
+      - "name": "n_name"
+        "max_frequency": 1
+      - "name": "n_regionkey"
+        "max_frequency": 1
+      - "name": "n_comment"
+        "max_frequency": 1
+
+  - "name": "region"
+    "global_entity": false
+    "privacy_policy":
+      "name": "PUB"
+    "attributes":
+      - "name": "r_regionkey"
+        "max_frequency": 1
+      - "name": "r_name"
+        "max_frequency": 1
+      - "name": "r_comment"
+        "max_frequency": 1
+
+  - "name": "part"
+    "global_entity": false
+    "privacy_policy":
+      "name": "PUB"
+    "attributes":
+      - "name": "p_partkey"
+        "max_frequency": 1
+      - "name": "p_name"
+        "max_frequency": 10
+      - "name": "p_mfgr"
+        "max_frequency": 10
+      - "name": "p_brand"
+        "max_frequency": 1
+      - "name": "p_type"
+        "max_frequency": 10
+      - "name": "p_size"
+        "max_frequency": 10
+      - "name": "p_container"
+        "max_frequency": 10
+      - "name": "p_retailprice"
+        "max_frequency": 10
+      - "name": "p_comment"
+        "max_frequency": 1
+
+  - "name": "supplier"
+    "global_entity": false
+    "privacy_policy":
+      "name": "REP"
+      "attributes": ["s_acctbal"]
+    "attributes":
+      - "name": "s_suppkey"
+        "max_frequency": 1
+      - "name": "s_name"
+        "max_frequency": 1
+      - "name": "s_address"
+        "max_frequency": 1
+      - "name": "s_nationkey"
+        "max_frequency": 1
+      - "name": "s_phone"
+        "max_frequency": 1
+      - "name": "s_acctbal"
+        "max_frequency": 10
+      - "name": "s_comment"
+        "max_frequency": 1
+
+  - "name": "partsupp"
+    "global_entity": false
+    "privacy_policy":
+      "name": "INH"
+    "attributes":
+      - "name": "ps_partkey"
+        "max_frequency": 10
+      - "name": "ps_suppkey"
+        "max_frequency": 10
+      - "name": "ps_availqty"
+        "max_frequency": 10
+      - "name": "ps_supplycost"
+        "max_frequency": 10
+      - "name": "ps_comment"
+        "max_frequency": 1
+
+  - "name": "customer"
+    "global_entity": true
+    "privacy_policy":
+      "name": "ADD"
+    "attributes":
+      - "name": "c_custkey"
+        "max_frequency": 1
+      - "name": "c_name"
+        "max_frequency": 10
+      - "name": "c_address"
+        "max_frequency": 10
+      - "name": "c_nationkey"
+        "max_frequency": 10
+      - "name": "c_phone"
+        "max_frequency": 10
+      - "name": "c_acctbal"
+        "max_frequency": 10
+      - "name": "c_mktsegment"
+        "max_frequency": 10
+      - "name": "c_comment"
+        "max_frequency": 1
+
+  - "name": "orders"
+    "global_entity": false
+    "privacy_policy":
+      "name": "INH"
+    "attributes":
+      - "name": "o_orderkey"
+        "max_frequency": 1
+      - "name": "o_custkey"
+        "max_frequency": 10
+      - "name": "o_orderstatus"
+        "max_frequency": 10
+      - "name": "o_totalprice"
+        "max_frequency": 10
+      - "name": "o_orderdate"
+        "max_frequency": 10
+      - "name": "o_orderpriority"
+        "max_frequency": 10
+      - "name": "o_clerk"
+        "max_frequency": 10
+      - "name": "o_shippriority"
+        "max_frequency": 10
+      - "name": "o_comment"
+        "max_frequency": 1
+
+  - "name": "lineitem"
+    "global_entity": false
+    "privacy_policy":
+      "name": "INH"
+    "attributes":
+      - "name": "l_orderkey"
+        "max_frequency": 10
+      - "name": "l_partkey"
+        "max_frequency": 10
+      - "name": "l_suppkey"
+        "max_frequency": 10
+      - "name": "l_linenumber"
+        "max_frequency": 1
+      - "name": "l_quantity"
+        "max_frequency": 10
+      - "name": "l_extendedprice"
+        "max_frequency": 10
+      - "name": "l_discount"
+        "max_frequency": 10
+      - "name": "l_tax"
+        "max_frequency": 10
+      - "name": "l_returnflag"
+        "max_frequency": 10
+      - "name": "l_linestatus"
+        "max_frequency": 10
+      - "name": "l_shipdate"
+        "max_frequency": 10
+      - "name": "l_commitdate"
+        "max_frequency": 10
+      - "name": "l_receiptdate"
+        "max_frequency": 10
+      - "name": "l_shipinstruct"
+        "max_frequency": 10
+      - "name": "l_shipmode"
+        "max_frequency": 10
+      - "name": "l_comment"
+        "max_frequency": 1

@@ -1,0 +1,452 @@
+relations:
+  - "name": "nation"
+    "identifier": [ "n_nationkey" ]
+    "attributes":
+      - "name": "n_nationkey"
+        "datatype":
+          "name": "int"
+          "upper": 2147483647
+          "lower": -2147483646
+          "nullable": false
+          "unique": true
+      - "name": "n_name"
+        "datatype":
+          "name": "text"
+          "max_length": 25
+          "nullable": false
+          "unique": false
+      - "name": "n_regionkey"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "region"
+          "to_attribute": "r_regionkey"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "n_comment"
+        "datatype":
+          "name": "text"
+          "max_length": 152
+          "nullable": false
+          "unique": false
+
+  - "name": "region"
+    "identifier": [ "r_regionkey" ]
+    "attributes":
+      - "name": "r_regionkey"
+        "datatype":
+          "name": "int"
+          "upper": 2147483647
+          "lower": -2147483646
+          "nullable": false
+          "unique": true
+      - "name": "r_name"
+        "datatype":
+          "name": "text"
+          "max_length": 25
+          "nullable": false
+          "unique": false
+      - "name": "r_comment"
+        "datatype":
+          "name": "text"
+          "max_length": 152
+          "nullable": false
+          "unique": false
+
+  - "name": "part"
+    "identifier": [ "p_partkey" ]
+    "attributes":
+      - "name": "p_partkey"
+        "datatype":
+          "name": "int"
+          "upper": 2147483647
+          "lower": -2147483646
+          "nullable": false
+          "unique": true
+      - "name": "p_name"
+        "datatype":
+          "name": "text"
+          "max_length": 55
+          "nullable": false
+          "unique": false
+      - "name": "p_mfgr"
+        "datatype":
+          "name": "text"
+          "max_length": 25
+          "nullable": false
+          "unique": false
+      - "name": "p_brand"
+        "datatype":
+          "name": "text"
+          "max_length": 10
+          "nullable": false
+          "unique": false
+      - "name": "p_type"
+        "datatype":
+          "name": "text"
+          "max_length": 25
+          "nullable": false
+          "unique": false
+      - "name": "p_size"
+        "datatype":
+          "name": "int"
+          "upper": 1000
+          "lower": 0
+          "nullable": false
+          "unique": true
+      - "name": "p_container"
+        "datatype":
+          "name": "text"
+          "max_length": 10
+          "nullable": false
+          "unique": false
+      - "name": "p_retailprice"
+        "datatype":
+          "name": "decimal"
+          "upper": 999999
+          "lower": 0
+          "scale": 2
+          "precision": 12
+          "nullable": false
+          "unique": false
+      - "name": "p_comment"
+        "datatype":
+          "name": "text"
+          "max_length": 23
+          "nullable": false
+          "unique": false
+
+
+  - "name": "supplier"
+    "identifier": [ "s_suppkey" ]
+    "attributes":
+      - "name": "s_suppkey"
+        "datatype":
+          "name": "int"
+          "upper": 2147483647
+          "lower": -2147483646
+          "nullable": false
+          "unique": true
+      - "name": "s_name"
+        "datatype":
+          "name": "text"
+          "max_length": 25
+          "nullable": false
+          "unique": false
+      - "name": "s_address"
+        "datatype":
+          "name": "text"
+          "max_length": 40
+          "nullable": false
+          "unique": false
+      - "name": "s_nationkey"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "nation"
+          "to_attribute": "n_nationkey"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "s_phone"
+        "datatype":
+          "name": "text"
+          "max_length": 15
+          "nullable": false
+          "unique": false
+      - "name": "s_acctbal"
+        "datatype":
+          "name": "decimal"
+          "upper": 999999
+          "lower": 0
+          "scale": 2
+          "precision": 12
+          "nullable": false
+          "unique": false
+      - "name": "s_comment"
+        "datatype":
+          "name": "text"
+          "max_length": 101
+          "nullable": false
+          "unique": false
+
+
+  - "name": "partsupp"
+    "identifier": [ "ps_partkey", "ps_suppkey" ]
+    "attributes":
+      - "name": "ps_partkey"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "part"
+          "to_attribute": "p_partkey"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "ps_suppkey"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "supplier"
+          "to_attribute": "s_suppkey"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "ps_availqty"
+        "datatype":
+          "name": "int"
+          "upper": 999999
+          "lower": 0
+          "nullable": false
+          "unique": true
+      - "name": "ps_supplycost"
+        "datatype":
+          "name": "decimal"
+          "upper": 999999
+          "lower": 0
+          "scale": 2
+          "precision": 12
+          "nullable": false
+          "unique": false
+      - "name": "ps_comment"
+        "datatype":
+          "name": "text"
+          "max_length": 199
+          "nullable": false
+          "unique": false
+
+
+  - "name": "customer"
+    "identifier": [ "c_custkey" ]
+    "attributes":
+      - "name": "c_custkey"
+        "datatype":
+          "name": "int"
+          "upper": 2147483647
+          "lower": -2147483646
+          "nullable": false
+          "unique": true
+      - "name": "c_name"
+        "datatype":
+          "name": "text"
+          "max_length": 25
+          "nullable": false
+          "unique": false
+      - "name": "c_address"
+        "datatype":
+          "name": "text"
+          "max_length": 40
+          "nullable": false
+          "unique": false
+      - "name": "c_nationkey"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "nation"
+          "to_attribute": "n_nationkey"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "c_phone"
+        "datatype":
+          "name": "text"
+          "max_length": 15
+          "nullable": false
+          "unique": false
+      - "name": "c_acctbal"
+        "datatype":
+          "name": "decimal"
+          "upper": 999999
+          "lower": 0
+          "scale": 2
+          "precision": 12
+          "nullable": false
+          "unique": false
+      - "name": "c_mktsegment"
+        "datatype":
+          "name": "text"
+          "max_length": 10
+          "nullable": false
+          "unique": false
+      - "name": "c_comment"
+        "datatype":
+          "name": "text"
+          "max_length": 117
+          "nullable": false
+          "unique": false
+
+  - "name": "orders"
+    "identifier": [ "o_orderkey" ]
+    "attributes":
+      - "name": "o_orderkey"
+        "datatype":
+          "name": "int"
+          "upper": 1000
+          "lower": 0
+          "nullable": false
+          "unique": true
+      - "name": "o_custkey"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "customer"
+          "to_attribute": "c_custkey"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "o_orderstatus"
+        "datatype":
+          "name": "text"
+          "max_length": 1
+          "nullable": false
+          "unique": false
+      - "name": "o_totalprice"
+        "datatype":
+          "name": "decimal"
+          "upper": 999999
+          "lower": 0
+          "scale": 2
+          "precision": 12
+          "nullable": false
+          "unique": false
+      - "name": "o_orderdate"
+        "datatype":
+          "name": "datetime"
+          "nullable": false
+          "unique": false
+      - "name": "o_orderpriority"
+        "datatype":
+          "name": "text"
+          "max_length": 15
+          "nullable": false
+          "unique": false
+      - "name": "o_clerk"
+        "datatype":
+          "name": "text"
+          "max_length": 15
+          "nullable": false
+          "unique": false
+      - "name": "o_shippriority"
+        "datatype":
+          "name": "int"
+          "upper": 999999
+          "lower": 0
+          "nullable": false
+          "unique": true
+      - "name": "o_comment"
+        "datatype":
+          "name": "text"
+          "max_length": 79
+          "nullable": false
+          "unique": false
+
+  - "name": "lineitem"
+    "identifier": [ "l_orderkey", "l_linenumber" ]
+    "attributes":
+      - "name": "l_orderkey"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "orders"
+          "to_attribute": "o_orderkey"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "l_partkey"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "part"
+          "to_attribute": "p_partkey"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "l_suppkey"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "supplier"
+          "to_attribute": "s_suppkey"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "l_linenumber"
+        "datatype":
+          "name": "int"
+          "upper": 999999
+          "lower": 0
+          "nullable": false
+          "unique": true
+      - "name": "l_quantity"
+        "datatype":
+          "name": "decimal"
+          "upper": 999999
+          "lower": 0
+          "scale": 2
+          "precision": 12
+          "nullable": false
+          "unique": false
+      - "name": "l_extendedprice"
+        "datatype":
+          "name": "decimal"
+          "upper": 999999
+          "lower": 0
+          "scale": 2
+          "precision": 12
+          "nullable": false
+          "unique": false
+      - "name": "l_discount"
+        "datatype":
+          "name": "decimal"
+          "upper": 1
+          "lower": 0
+          "scale": 2
+          "precision": 3
+          "nullable": false
+          "unique": false
+      - "name": "l_tax"
+        "datatype":
+          "name": "decimal"
+          "upper": 999999
+          "lower": 0
+          "scale": 2
+          "precision": 12
+          "nullable": false
+          "unique": false
+      - "name": "l_returnflag"
+        "datatype":
+          "name": "text"
+          "max_length": 1
+          "nullable": false
+          "unique": false
+      - "name": "l_linestatus"
+        "datatype":
+          "name": "text"
+          "max_length": 1
+          "nullable": false
+          "unique": false
+      - "name": "l_shipdate"
+        "datatype":
+          "name": "datetime"
+          "nullable": false
+          "unique": false
+      - "name": "l_commitdate"
+        "datatype":
+          "name": "datetime"
+          "nullable": false
+          "unique": false
+      - "name": "l_receiptdate"
+        "datatype":
+          "name": "datetime"
+          "nullable": false
+          "unique": false
+      - "name": "l_shipinstruct"
+        "datatype":
+          "name": "text"
+          "max_length": 25
+          "nullable": false
+          "unique": false
+      - "name": "l_shipmode"
+        "datatype":
+          "name": "text"
+          "max_length": 10
+          "nullable": false
+          "unique": false
+      - "name": "l_comment"
+        "datatype":
+          "name": "text"
+          "max_length": 44
+          "nullable": false
+          "unique": false

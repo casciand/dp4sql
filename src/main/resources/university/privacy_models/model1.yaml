@@ -1,0 +1,65 @@
+relations:
+  - "name": "student"
+    "global_entity": false
+    "privacy_policy":
+      "name": "PUB"
+    "attributes":
+      - "name": "u_uid"
+        "max_frequency": 1
+      - "name": "u_name"
+        "max_frequency": 2
+      - "name": "u_major"
+        "max_frequency": 50
+
+  - "name": "faculty"
+    "global_entity": true
+    "privacy_policy":
+      "name": "REP"
+      "attributes": ["f_salary"]
+    "attributes":
+      - "name": "f_fid"
+        "max_frequency": 1
+      - "name": "f_name"
+        "max_frequency": 2
+      - "name": "f_salary"
+        "max_frequency": 50
+
+  - "name": "course"
+    "global_entity": false
+    "privacy_policy":
+      "name": "PUB"
+    "attributes":
+      - "name": "c_cid"
+        "max_frequency": 1
+      - "name": "c_title"
+        "max_frequency": 1
+      - "name": "c_credits"
+        "max_frequency": 50
+
+  - "name": "section"
+    "global_entity": false
+    "privacy_policy":
+      "name": "INH"
+    "attributes":
+      - "name": "s_sid"
+        "max_frequency": 1
+      - "name": "s_fid"
+        "max_frequency": 3
+      - "name": "s_cid"
+        "max_frequency": 1
+      - "name": "s_term"
+        "max_frequency": 50
+
+  - "name": "enrollment"
+    "global_entity": false
+    "privacy_policy":
+      "name": "INH"
+    "attributes":
+      - "name": "e_eid"
+        "max_frequency": 1
+      - "name": "e_sid"
+        "max_frequency": 50
+      - "name": "e_uid"
+        "max_frequency": 6
+      - "name": "e_grade"
+        "max_frequency": 10
