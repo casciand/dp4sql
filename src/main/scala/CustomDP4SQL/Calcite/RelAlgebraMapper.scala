@@ -215,5 +215,3 @@ object RelAlgebraMapper {
     if (inputStrings.nonEmpty) s"$nodeString\n$inputStrings" else nodeString
   }
 }
-
-

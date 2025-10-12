@@ -18,8 +18,8 @@ lazy val dpsql = (project in file("."))
       "com.fasterxml.jackson.dataformat" % "jackson-dataformat-yaml" % "2.17.2", // CURRENT LATEST STABLE VERSION
       // Addon to Jackson for Scala datatypes
       "com.fasterxml.jackson.module" %% "jackson-module-scala" % "2.17.1", // CURRENT LATEST VERSION
-      // "ch.qos.logback" % "logback-classic" % "1.4.14",
-      // "org.slf4j" % "slf4j-simple" % "2.0.13",3
+//       "ch.qos.logback" % "logback-classic" % "1.4.14",
+//       "org.slf4j" % "slf4j-simple" % "2.0.13",
       "org.slf4j" % "slf4j-nop" % "2.0.17",  // Disable logging
 
       // Used for testing

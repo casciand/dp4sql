@@ -9,7 +9,7 @@ relations:
       - "name": "n_name"
         "max_frequency": 1
       - "name": "n_regionkey"
-        "max_frequency": 1
+        "max_frequency": 5
       - "name": "n_comment"
         "max_frequency": 1
 
@@ -61,7 +61,7 @@ relations:
       - "name": "s_address"
         "max_frequency": 1
       - "name": "s_nationkey"
-        "max_frequency": 1
+        "max_frequency": 438
       - "name": "s_phone"
         "max_frequency": 1
       - "name": "s_acctbal"
@@ -75,9 +75,9 @@ relations:
       "name": "PUB"
     "attributes":
       - "name": "ps_partkey"
-        "max_frequency": 10
+        "max_frequency": 4
       - "name": "ps_suppkey"
-        "max_frequency": 10
+        "max_frequency": 80
       - "name": "ps_availqty"
         "max_frequency": 10
       - "name": "ps_supplycost"
@@ -97,7 +97,7 @@ relations:
       - "name": "c_address"
         "max_frequency": 10
       - "name": "c_nationkey"
-        "max_frequency": 10
+        "max_frequency": 6161
       - "name": "c_phone"
         "max_frequency": 10
       - "name": "c_acctbal"
@@ -115,7 +115,7 @@ relations:
       - "name": "o_orderkey"
         "max_frequency": 1
       - "name": "o_custkey"
-        "max_frequency": 10
+        "max_frequency": 41
       - "name": "o_orderstatus"
         "max_frequency": 10
       - "name": "o_totalprice"
@@ -137,11 +137,11 @@ relations:
       "name": "INH"
     "attributes":
       - "name": "l_orderkey"
-        "max_frequency": 10
+        "max_frequency": 7
       - "name": "l_partkey"
-        "max_frequency": 10
+        "max_frequency": 57
       - "name": "l_suppkey"
-        "max_frequency": 10
+        "max_frequency": 694
       - "name": "l_linenumber"
         "max_frequency": 1
       - "name": "l_quantity"

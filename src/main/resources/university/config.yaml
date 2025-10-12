@@ -18,6 +18,7 @@ schema_path: "src/main/resources/university/schema.yaml"
 privacy_models:
   model1: "src/main/resources/university/privacy_models/model1.yaml"
   model2: "src/main/resources/university/privacy_models/model2.yaml"
+  model3: "src/main/resources/university/privacy_models/model3.yaml"
 
 queries:
   # Names of Faculty teaching Physics in Fall 2024
@@ -36,4 +37,20 @@ queries:
   INNER JOIN section ON f_fid = s_fid
   INNER JOIN course ON s_cid = c_cid
   WHERE c_credits = 3
+  "
+
+  # Student ownership view
+  3: "
+  SELECT COUNT(u_uid)
+  FROM student
+  INNER JOIN enrollment ON u_uid = e_uid
+  "
+
+  4: "
+  SELECT COUNT(e_review)
+  FROM section
+  INNER JOIN course ON s_cid = c_cid
+  INNER JOIN enrollment ON s_sid = e_sid
+  WHERE c_title LIKE 'NLP'
+  GROUP BY s_fid
   "

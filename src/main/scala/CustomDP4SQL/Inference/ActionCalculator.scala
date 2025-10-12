@@ -4,7 +4,7 @@ import CustomDP4SQL.Common.SchemaMapper
 import CustomDP4SQL.DataModel.Config.Config
 import CustomDP4SQL.DataModel.PrivacyModel.{PrivacyPolicy, SchemaPrivacyModel}
 import CustomDP4SQL.PrivacyModel.Action.{AddDelAction, PlausibleDeniabilityAction, PubAction, RepAction}
-import CustomDP4SQL.Representation.{Edge, GraphBuilder}
+import CustomDP4SQL.Representation.{Edge, GraphBuilder, RefConstr}
 import CustomDP4SQL.Visitor.{ActionVisitor, MaxFrequencyVisitor}
 import org.apache.calcite.rel.RelNode
 
@@ -21,6 +21,7 @@ class ActionCalculator(config: Config, privacyModel: SchemaPrivacyModel) {
 
   var _dataDependencyGraph: mutable.Map[String, Set[Edge]] = mutable.Map[String, Set[Edge]]()
   var _referentialIntegrityGraph: mutable.Map[String, Set[Edge]] = mutable.Map[String, Set[Edge]]()
+  var _refConstraints: mutable.Set[RefConstr] = mutable.Set[RefConstr]()
 
 
   private def buildBaseRelationMaxFreqMap(): Unit = {
@@ -39,6 +40,7 @@ class ActionCalculator(config: Config, privacyModel: SchemaPrivacyModel) {
 
     _dataDependencyGraph = graphBuilder.dataDependencyGraph
     _referentialIntegrityGraph = graphBuilder.referentialIntegrityGraph
+    _refConstraints = graphBuilder.refConstraints
     indegreeMap = graphBuilder.indegreeMap
 
     // Topological traversal of data dependency graph
@@ -74,8 +76,6 @@ class ActionCalculator(config: Config, privacyModel: SchemaPrivacyModel) {
   private def getMaximumOwnership(globalEntity: String, relation: String): Int = {
     if (relation == globalEntity) {
       1
-    } else if (_referentialIntegrityGraph(relation).isEmpty) {
-      0
     } else {
       var sum = 0
 
@@ -88,116 +88,30 @@ class ActionCalculator(config: Config, privacyModel: SchemaPrivacyModel) {
     }
   }
 
-  private def toPub(table: String): PubAction = {
-    _referentialIntegrityGraph(table).foreach(foreignKey => {
-      val childAction = baseRelationActionMap(foreignKey.toTable)
-      val childNode = privacyModel.getRelationPrivacyModel(foreignKey.toTable).get
-
-      childAction match {
-        case addDel: AddDelAction =>
-          if (addDel.delete > 0)
-          throw Error(s"'$table' cannot have PUB policy when '${foreignKey.toTable}' has action $childAction")
-        case rep: RepAction =>
-          val childPrimaryKey = schema.relations.find(_.name == foreignKey.toTable).get.identifier
-          val childAttributes = childNode.privacy_policy.attributes.get
-          
-          if (childAttributes.intersect(childPrimaryKey).nonEmpty) {
-            throw Error(s"'$table' cannot have PUB policy when '${foreignKey.toTable}' has action $childAction")
-          }
-        case _ =>
-      }
-    })
-
-    PubAction()
-  }
-
-  private def toAddDel(table: String): AddDelAction = {
-    val finalAction = AddDelAction(0, 0)
-
-    _referentialIntegrityGraph(table).foreach(foreignKey => {
-      val childAction = baseRelationActionMap(foreignKey.toTable)
-      val childNode = privacyModel.getRelationPrivacyModel(foreignKey.toTable).get
-      val maxFreq = baseRelationMaxFreqMap(table)(foreignKey.name)
-
-      childAction match {
-        case addDel: AddDelAction =>
-          finalAction.add += addDel.add * maxFreq
-          finalAction.delete += addDel.delete * maxFreq
-        case rep: RepAction =>
-          val childPrimaryKey = schema.relations.find(_.name == foreignKey.toTable).get.identifier
-          val childAttributes = childNode.privacy_policy.attributes.get
-          
-          if (childAttributes.intersect(childPrimaryKey).nonEmpty) {
-            finalAction.add += rep.replace * maxFreq
-            finalAction.delete += rep.replace * maxFreq
-          }
-        case _ =>
-      }
-    })
-
-    finalAction
-  }
-
-  private def toRep(table: String, policyAttributes: Set[String]): RepAction = {
-    val finalAction = RepAction(getMaximumOwnership(globalEntity, table), policyAttributes)
-
-    _referentialIntegrityGraph(table).foreach(foreignKey => {
-      val childAction = baseRelationActionMap(foreignKey.toTable)
-      val childNode = privacyModel.getRelationPrivacyModel(foreignKey.toTable).get
-      val maxFreq = baseRelationMaxFreqMap(table)(foreignKey.name)
-
-      childAction match {
-        case addDel: AddDelAction =>
-          if (addDel.delete > 0 && !policyAttributes.contains(foreignKey.name)) {
-            throw Error(s"'$table' cannot have REP policy when '${foreignKey.toTable}' has action $childAction and '${foreignKey.name}' is not in the set of replaced attributes.")
-          } else {
-            finalAction.replace += addDel.delete * maxFreq
-          }
-        case rep: RepAction =>
-          val childPrimaryKey = schema.relations.find(_.name == foreignKey.toTable).get.identifier
-          val childAttributes = childNode.privacy_policy.attributes.get
-
-          if (childAttributes.intersect(childPrimaryKey).nonEmpty) {
-            if (!policyAttributes.contains(foreignKey.name)) {
-              throw Error(s"'$table' cannot have REP policy when '${foreignKey.toTable}' has action $childAction and '${foreignKey.name}' is not in the set of replaced attributes.")
-            } else {
-              finalAction.replace += rep.replace * maxFreq
-            }
-          }
-        case _ =>
-      }
-    })
-
-    finalAction
-  }
-
   private def deriveBaseRelationAction(table: String, policy: PrivacyPolicy, isGlobalEntity: Boolean): Unit = {
     var action: PlausibleDeniabilityAction = PubAction()
 
     if (isGlobalEntity) {
       globalEntity = table
       action = policy.name match {
-        case "PUB" => PubAction()
-        case "ADD" => AddDelAction(1, 0)
         case "DEL" => AddDelAction(0, 1)
         case "REP" => RepAction(1, policy.attributes.get)
         case other => throw Error(s"Encountered invalid policy '$other' for global entity table '$table''")
       }
     } else {
       action = policy.name match {
-        case "PUB" => toPub(table)
-        case "INH" => toAddDel(table)
-        case "REP" => toRep(table, policy.attributes.get)
+        case "DEL" => AddDelAction(0, getMaximumOwnership(globalEntity, table))
+        case "REP" => RepAction(getMaximumOwnership(globalEntity, table), policy.attributes.get)
         case other => throw Error(s"Encountered invalid policy '$other' for non-entity table '$table''")
       }
     }
 
     // Coerce Add(0) x Del(0) and Rep(0) to Pub for subsequent inference
-    action = action match {
-      case addDelAction: AddDelAction if addDelAction.add == 0 && addDelAction.delete == 0 => PubAction()
-      case repAction: RepAction if repAction.replace == 0 => PubAction()
-      case _ => action
-    }
+//    action = action match {
+//      case addDelAction: AddDelAction if addDelAction.add == 0 && addDelAction.delete == 0 => PubAction()
+//      case repAction: RepAction if repAction.replace == 0 => PubAction()
+//      case _ => action
+//    }
 
     baseRelationActionMap += table -> action
   }
@@ -210,7 +124,7 @@ class ActionCalculator(config: Config, privacyModel: SchemaPrivacyModel) {
     maxFrequencyVisitor.visit(node, 0, null)
     val relNodeMaxFreqMap = maxFrequencyVisitor.relNodeMaxFreqMap
 
-    val actionVisitor = ActionVisitor(baseRelationActionMap, relNodeMaxFreqMap, _dataDependencyGraph)
+    val actionVisitor = ActionVisitor(baseRelationActionMap, relNodeMaxFreqMap, _dataDependencyGraph, _refConstraints)
     actionVisitor.visit(node, 0, null)
     actionVisitor.relNodeActionMap
   }

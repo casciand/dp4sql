@@ -3,7 +3,9 @@ package CustomDP4SQL.Interface
 import CustomDP4SQL.Calcite.RelAlgebraMapper
 import CustomDP4SQL.Common.SchemaMapper
 import CustomDP4SQL.DataModel.Schema.{Datatype, Relation, Schema}
-import CustomDP4SQL.Inference.ActionCalculator
+import CustomDP4SQL.Inference.{ActionCalculator, SensitivityCalculator}
+import org.apache.calcite.plan.RelOptUtil
+import org.apache.calcite.sql.SqlExplainLevel
 
 object CommandLineInterface {
   private val schemaMapper: SchemaMapper = SchemaMapper()
@@ -50,7 +52,8 @@ object CommandLineInterface {
     println("2. Show Attributes for Relation")
     println("3. Show Relational Algebra Tree for Query")
     println("4. Derive Plausible Deniability Action for Query")
-    println("5. Exit\n")
+    println("5. Derive Laplacian Noise for Query")
+    println("6. Exit\n")
     print("Select Option: ")
   }
 
@@ -134,6 +137,29 @@ object CommandLineInterface {
             println("Invalid query selection.")
           }
         case 5 =>
+          println("\nQueries:")
+          queryNames.zipWithIndex.foreach { case (name, i) => println(s"${i + 1}. q$name") }
+          print("\nSelect Query: ")
+          val input = scala.io.StdIn.readLine().toIntOption.getOrElse(0) - 1
+          println()
+
+          if (input >= 0 && input < queryNames.length) {
+            val sql = config.queries(queryNames(input))
+            val schemaPlus = RelAlgebraMapper.createCalciteSchema(schema, config)
+            val rootNode = RelAlgebraMapper.sqlToRelNode(sql, schemaPlus)
+            val sensitivityCalculator = SensitivityCalculator()
+
+            config.privacy_models.foreach((name, path) => {
+              val privacyModel = schemaMapper.yamlToPrivacyModel(path)
+              val stabilityCalculator = ActionCalculator(config, privacyModel)
+              val relNodeActionMap = stabilityCalculator.deriveActionsForTree(rootNode)
+              val sensitivity = sensitivityCalculator.computeSensitivity(rootNode, relNodeActionMap(rootNode))
+              println(s"[$name] Sensitivity: ${sensitivity}")
+            })
+          } else  {
+            println("Invalid query selection.")
+          }
+        case 6 =>
           running = false
         case -1 =>
           println("Invalid option.")

@@ -138,5 +138,12 @@ relations:
           "lower": 0
           "scale": 2
           "precision": 15
-          "nullable": false
+          "nullable": true
+          "unique": false
+      - "name": "e_review"
+        "datatype":
+          "name": "int"
+          "upper": 5
+          "lower": 1
+          "nullable": true
           "unique": false

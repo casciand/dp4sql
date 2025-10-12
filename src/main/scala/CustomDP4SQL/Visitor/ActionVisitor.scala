@@ -1,7 +1,7 @@
 package CustomDP4SQL.Visitor
 
 import CustomDP4SQL.PrivacyModel.Action.{AddDelAction, PlausibleDeniabilityAction, PubAction, RepAction}
-import CustomDP4SQL.Representation.Edge
+import CustomDP4SQL.Representation.{Edge, RefConstr}
 import org.apache.calcite.rel.core.{Filter, Join, Project}
 import org.apache.calcite.rel.{RelNode, RelVisitor}
 import org.apache.calcite.rex.{RexCall, RexInputRef, RexNode}
@@ -12,7 +12,8 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, PlausibleDeniabilityAction],
                     private val _relNodeMaxFreqMap: mutable.Map[RelNode, mutable.Map[String, Int]],
-                    private val _dataDependencyGraph: mutable.Map[String, Set[Edge]]
+                    private val _dataDependencyGraph: mutable.Map[String, Set[Edge]],
+                    private val _refConstraints: mutable.Set[RefConstr]
                       ) extends RelVisitor {
   private val _relNodeActionMap: mutable.Map[RelNode, PlausibleDeniabilityAction] = mutable.Map[RelNode, PlausibleDeniabilityAction]()
   
@@ -54,7 +55,7 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
       case action: RepAction =>
         if (action.attributes.intersect(projectionAttributes).nonEmpty) {
           RepAction(action.replace, action.attributes.intersect(projectionAttributes))
-        } else PubAction()
+        } else RepAction(0, Set.empty)
       case _ => childAction
     }
   }
@@ -70,61 +71,80 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
     val rightMaxFreq = rightJoinKeys.map(key => _relNodeMaxFreqMap(node.getInput(1))(key)).min
 
     // T-Join1
-    if (leftAction.isInstanceOf[PubAction] && rightAction.isInstanceOf[PubAction]) {
-      return PubAction()
-    }
+//    if (leftAction.isInstanceOf[PubAction] && rightAction.isInstanceOf[PubAction]) {
+//      return PubAction()
+//    }
 
     // T-Join2
-    if (leftAction.isInstanceOf[AddDelAction] && rightAction.isInstanceOf[PubAction]) {
-      val addDel = leftAction.asInstanceOf[AddDelAction]
-      return AddDelAction(addDel.add * rightMaxFreq, addDel.delete * rightMaxFreq)
-    }
+//    if (leftAction.isInstanceOf[AddDelAction] && rightAction.isInstanceOf[PubAction]) {
+//      val addDel = leftAction.asInstanceOf[AddDelAction]
+//      return AddDelAction(addDel.add * rightMaxFreq, addDel.delete * rightMaxFreq)
+//    }
 
-    if (rightAction.isInstanceOf[AddDelAction] && leftAction.isInstanceOf[PubAction]) {
-      val addDel = rightAction.asInstanceOf[AddDelAction]
-      return AddDelAction(addDel.add * leftMaxFreq, addDel.delete * leftMaxFreq)
-    }
+//    if (rightAction.isInstanceOf[AddDelAction] && leftAction.isInstanceOf[PubAction]) {
+//      val addDel = rightAction.asInstanceOf[AddDelAction]
+//      return AddDelAction(addDel.add * leftMaxFreq, addDel.delete * leftMaxFreq)
+//    }
 
     // T-Join3, T-Join4
-    if (leftAction.isInstanceOf[RepAction] && rightAction.isInstanceOf[PubAction]) {
-      val rep = leftAction.asInstanceOf[RepAction]
+//    if (leftAction.isInstanceOf[RepAction] && rightAction.isInstanceOf[PubAction]) {
+//      val rep = leftAction.asInstanceOf[RepAction]
+//
+//      // T-Join3
+//      if (rep.attributes.intersect(leftJoinKeys).isEmpty) {
+//        return RepAction(rep.replace * rightMaxFreq, rep.attributes)
+//      // T-Join4
+//      } else {
+//        return AddDelAction(rep.replace * rightMaxFreq, rep.replace * rightMaxFreq)
+//      }
+//    }
 
-      // T-Join3
-      if (rep.attributes.intersect(leftJoinKeys).isEmpty) {
-        return RepAction(rep.replace * rightMaxFreq, rep.attributes)
-      // T-Join4
-      } else {
-        return AddDelAction(rep.replace * rightMaxFreq, rep.replace * rightMaxFreq)
+//    if (rightAction.isInstanceOf[RepAction] && leftAction.isInstanceOf[PubAction]) {
+//      val rep = rightAction.asInstanceOf[RepAction]
+//
+//      // T-Join3
+//      if (rep.attributes.intersect(rightJoinKeys).isEmpty) {
+//        return RepAction(rep.replace * leftMaxFreq, rep.attributes)
+//      // T-Join4
+//      } else {
+//        return AddDelAction(rep.replace * leftMaxFreq, rep.replace * leftMaxFreq)
+//      }
+//    }
+
+    // T-Join-Key
+    if (_refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
+      if (leftAction.isInstanceOf[AddDelAction]) {
+        return leftAction
+      }
+
+      if (leftAction.isInstanceOf[RepAction] && rightAction.isInstanceOf[AddDelAction]) {
+        if (rightAction.asInstanceOf[AddDelAction].delete > 0 && !leftAction.asInstanceOf[RepAction].attributes.contains(leftJoinKeys.toList.last)) {
+          throw Exception(s"${leftJoinKeys.toList.last} cannot be public.")
+        }
+
+        return leftAction
+      }
+
+      if (leftAction.isInstanceOf[RepAction] && rightAction.isInstanceOf[RepAction]) {
+        return RepAction(leftAction.asInstanceOf[RepAction].replace, leftAction.asInstanceOf[RepAction].attributes.union(rightAction.asInstanceOf[RepAction].attributes))
       }
     }
 
-    if (rightAction.isInstanceOf[RepAction] && leftAction.isInstanceOf[PubAction]) {
-      val rep = rightAction.asInstanceOf[RepAction]
-
-      // T-Join3
-      if (rep.attributes.intersect(rightJoinKeys).isEmpty) {
-        return RepAction(rep.replace * leftMaxFreq, rep.attributes)
-      // T-Join4
-      } else {
-        return AddDelAction(rep.replace * leftMaxFreq, rep.replace * leftMaxFreq)
+    if (_refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
+      if (rightAction.isInstanceOf[AddDelAction]) {
+        return rightAction
       }
-    }
 
-    // T-Join-Key1
-    if (node.getInput(0).getInputs.isEmpty && node.getInput(1).getInputs.isEmpty) {
-      val leftTableName = node.getInput(0).getTable.getQualifiedName.get(0)
-      val rightTableName = node.getInput(1).getTable.getQualifiedName.get(0)
-
-      if (leftAction.isInstanceOf[AddDelAction] && rightAction.isInstanceOf[AddDelAction]) {
-        val leftAddDel = leftAction.asInstanceOf[AddDelAction]
-        val rightAddDel = rightAction.asInstanceOf[AddDelAction]
-
-        if (_dataDependencyGraph(leftTableName).exists(edge => edge.toTable == rightTableName)) {
-          return rightAction
+      if (rightAction.isInstanceOf[RepAction] && leftAction.isInstanceOf[AddDelAction]) {
+        if (leftAction.asInstanceOf[AddDelAction].delete > 0 && !rightAction.asInstanceOf[RepAction].attributes.contains(rightJoinKeys.toList.last)) {
+          throw Exception(s"${rightJoinKeys.toList.last} cannot be public.")
         }
-        if (_dataDependencyGraph(rightTableName).exists(edge => edge.toTable == leftTableName)) {
-          return leftAction
-        }
+
+        return rightAction
+      }
+
+      if (rightAction.isInstanceOf[RepAction] && leftAction.isInstanceOf[RepAction]) {
+        return RepAction(rightAction.asInstanceOf[RepAction].replace, rightAction.asInstanceOf[RepAction].attributes.union(leftAction.asInstanceOf[RepAction].attributes))
       }
     }
 
@@ -157,17 +177,13 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
       if (leftRep.attributes.intersect(leftJoinKeys).isEmpty && rightRep.attributes.intersect(rightJoinKeys).isEmpty) {
         return RepAction(leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq, leftRep.attributes.union(rightRep.attributes))
       // T-Join8
-      } else if (leftRep.attributes.intersect(leftJoinKeys).isEmpty || rightRep.attributes.intersect(rightJoinKeys).isEmpty) {
-        return AddDelAction(leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq, leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq)
-      // T-Join9
       } else {
         return AddDelAction(leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq, leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq)
       }
     }
 
     // Default to Pub, although cases should be exhaustive
-    println("No join rule used")
-    PubAction()
+    throw Exception("No matching Join rule")
   }
 
   override def visit(node: RelNode, ordinal: Int, parent: RelNode): Unit = {
