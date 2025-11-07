@@ -3,7 +3,9 @@ package CustomDP4SQL.Interface
 import CustomDP4SQL.Calcite.RelAlgebraMapper
 import CustomDP4SQL.Common.SchemaMapper
 import CustomDP4SQL.DataModel.Schema.{Datatype, Relation, Schema}
-import CustomDP4SQL.Inference.ActionCalculator
+import CustomDP4SQL.Inference.{ActionCalculator, NoiseCalculator, SensitivityCalculator}
+
+import java.io.{File, PrintWriter}
 
 object QueryRunner {
   private val schemaMapper: SchemaMapper = SchemaMapper()
@@ -23,17 +25,37 @@ object QueryRunner {
 
     queryNames.foreach(query => {
       println(s"q$query")
+      val writer = new PrintWriter(new File(s"results/tpch_q$query.csv"))
       val sql = config.queries(query)
       val schemaPlus = RelAlgebraMapper.createCalciteSchema(schema, config)
       val rootNode = RelAlgebraMapper.sqlToRelNode(sql, schemaPlus)
+      val sensitivityCalculator = SensitivityCalculator(schema)
+      val noiseCalculator = NoiseCalculator()
 
       try {
-        config.privacy_models.foreach((name, path) => {
+        config.privacy_models.toList.sorted.foreach((name, path) => {
           val privacyModel = schemaMapper.yamlToPrivacyModel(path)
           val stabilityCalculator = ActionCalculator(config, privacyModel)
           val relNodeActionMap = stabilityCalculator.deriveActionsForTree(rootNode)
-          println(s"[$name] Action: ${relNodeActionMap(rootNode)}")
+          val sensitivity = sensitivityCalculator.computeSensitivity(rootNode, relNodeActionMap)
+
+          if (name.contains("baseline")) {
+            val relNodeActionMap = stabilityCalculator.deriveActionsForTree(rootNode, true)
+            val sensitivity = sensitivityCalculator.computeSensitivity(rootNode, relNodeActionMap)
+
+            writer.print(name + "_psql,")
+            writer.println((1 to 1000)
+              .map(_ => noiseCalculator.computeNoise(sensitivity).last)
+              .mkString(","))
+          }
+
+          writer.print(name + ",")
+          writer.println((1 to 1000)
+            .map(_ => noiseCalculator.computeNoise(sensitivity).last)
+            .mkString(","))
         })
+
+        writer.close()
       } catch {
         case _: Throwable => println("ERROR")
       }

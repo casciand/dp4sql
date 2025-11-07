@@ -5,7 +5,7 @@ import CustomDP4SQL.DataModel.Config.Config
 import CustomDP4SQL.DataModel.PrivacyModel.{PrivacyPolicy, SchemaPrivacyModel}
 import CustomDP4SQL.PrivacyModel.Action.{AddDelAction, PlausibleDeniabilityAction, PubAction, RepAction}
 import CustomDP4SQL.Representation.{Edge, GraphBuilder, RefConstr}
-import CustomDP4SQL.Visitor.{ActionVisitor, MaxFrequencyVisitor}
+import CustomDP4SQL.Visitor.{ActionVisitor, MaxFrequencyVisitor, PrivateSQLVisitor}
 import org.apache.calcite.rel.RelNode
 
 import scala.collection.mutable
@@ -116,7 +116,7 @@ class ActionCalculator(config: Config, privacyModel: SchemaPrivacyModel) {
     baseRelationActionMap += table -> action
   }
 
-  def deriveActionsForTree(node: RelNode): mutable.Map[RelNode, PlausibleDeniabilityAction] = {
+  def deriveActionsForTree(node: RelNode, usePrivateSql: Boolean = false): mutable.Map[RelNode, PlausibleDeniabilityAction] = {
     buildBaseRelationMaxFreqMap()
     deriveAllBaseRelationActions()
 
@@ -124,8 +124,14 @@ class ActionCalculator(config: Config, privacyModel: SchemaPrivacyModel) {
     maxFrequencyVisitor.visit(node, 0, null)
     val relNodeMaxFreqMap = maxFrequencyVisitor.relNodeMaxFreqMap
 
-    val actionVisitor = ActionVisitor(baseRelationActionMap, relNodeMaxFreqMap, _dataDependencyGraph, _refConstraints)
-    actionVisitor.visit(node, 0, null)
-    actionVisitor.relNodeActionMap
+    if (usePrivateSql) {
+      val actionVisitor = PrivateSQLVisitor(baseRelationActionMap, relNodeMaxFreqMap, _dataDependencyGraph, _refConstraints)
+      actionVisitor.visit(node, 0, null)
+      actionVisitor.relNodeActionMap
+    } else {
+      val actionVisitor = ActionVisitor(baseRelationActionMap, relNodeMaxFreqMap, _dataDependencyGraph, _refConstraints)
+      actionVisitor.visit(node, 0, null)
+      actionVisitor.relNodeActionMap
+    }
   }
 }

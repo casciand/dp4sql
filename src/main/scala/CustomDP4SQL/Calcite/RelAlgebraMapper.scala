@@ -44,7 +44,7 @@ object RelAlgebraMapper {
     schema.relations.foreach { table =>
       val calciteTable = tableMap(table.name)
       val updatedColumns = table.attributes.map { column =>
-        if (column.datatype.name.toLowerCase == "foreign key") {
+        if (column.datatype.name.toLowerCase == "foreign_key") {
           val foreignKeyParams = column.datatype
           val referencedTable = foreignKeyParams.to_relation.get
           val referencedColumn = foreignKeyParams.to_attribute.get

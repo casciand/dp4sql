@@ -2,7 +2,8 @@ relations:
   - "name": "student"
     "global_entity": true
     "privacy_policy":
-      "name": "DEL"
+      "name": "REP"
+      "attributes": []
     "attributes":
       - "name": "u_uid"
         "max_frequency": 1
@@ -45,15 +46,14 @@ relations:
       - "name": "s_fid"
         "max_frequency": 3
       - "name": "s_cid"
-        "max_frequency": 1
+        "max_frequency": 2
       - "name": "s_term"
         "max_frequency": 50
 
   - "name": "enrollment"
     "global_entity": false
     "privacy_policy":
-      "name": "REP"
-      "attributes": ["e_uid", "e_grade"]
+      "name": "DEL"
     "attributes":
       - "name": "e_eid"
         "max_frequency": 1

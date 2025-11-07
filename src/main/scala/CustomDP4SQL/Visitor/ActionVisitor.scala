@@ -1,8 +1,9 @@
 package CustomDP4SQL.Visitor
 
-import CustomDP4SQL.PrivacyModel.Action.{AddDelAction, PlausibleDeniabilityAction, PubAction, RepAction}
+import CustomDP4SQL.PrivacyModel.Action.{AddDelAction, PlausibleDeniabilityAction, RepAction}
 import CustomDP4SQL.Representation.{Edge, RefConstr}
 import org.apache.calcite.rel.core.{Filter, Join, Project}
+import org.apache.calcite.rel.logical.LogicalAggregate
 import org.apache.calcite.rel.{RelNode, RelVisitor}
 import org.apache.calcite.rex.{RexCall, RexInputRef, RexNode}
 import org.apache.calcite.sql.SqlKind
@@ -42,148 +43,137 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
     }
   }
 
+  private def extractPredicateAttrs(node: Filter, condition: RexNode): Set[String] = {
+    condition match {
+      case input: RexInputRef => Set(node.getRowType.getFieldNames.get(input.getIndex))
+      case call: RexCall =>
+        call.getOperands.asScala.flatMap(operand => extractPredicateAttrs(node, operand)).toSet
+      case _ => Set.empty
+    }
+  }
+
   private def deriveSelectAction(node: Filter): PlausibleDeniabilityAction = {
     val childAction = _relNodeActionMap(node.getInput(0))
-    childAction
+    childAction match {
+      case addDelAction: AddDelAction => addDelAction
+      case repAction: RepAction =>
+        val predicateAttrs = extractPredicateAttrs(node, node.getCondition)
+        if (repAction.attributes.intersect(predicateAttrs).isEmpty) {
+          repAction
+        } else {
+          AddDelAction(repAction.replace, repAction.replace)
+        }
+    }
   }
 
   private def deriveProjectAction(node: Project): PlausibleDeniabilityAction = {
     val childAction = _relNodeActionMap(node.getInput(0))
-    val projectionAttributes = node.getRowType.getFieldNames.asScala.toSet
+    val projectionAttrs = node.getRowType.getFieldNames.asScala.toSet
 
     childAction match {
       case action: RepAction =>
-        if (action.attributes.intersect(projectionAttributes).nonEmpty) {
-          RepAction(action.replace, action.attributes.intersect(projectionAttributes))
+        if (action.attributes.intersect(projectionAttrs).nonEmpty) {
+          RepAction(action.replace, action.attributes.intersect(projectionAttrs))
         } else RepAction(0, Set.empty)
       case _ => childAction
     }
   }
 
+  private def deriveAggregateAction(node: LogicalAggregate): PlausibleDeniabilityAction = {
+    val childAction = _relNodeActionMap(node.getInput(0))
+    val aggregationFunctions = node.getAggCallList.asScala.toList
+
+    if (aggregationFunctions.isEmpty) {
+      RepAction(0, Set.empty)
+    } else if (aggregationFunctions.size > 1) {
+      throw Error("More than one intermediate aggregation.")
+    } else if (aggregationFunctions.last.getAggregation.kind != SqlKind.COUNT) {
+      childAction
+      // throw Error(s"Unsupported intermediate aggregation: ${aggregationFunctions.last.getAggregation.kind}.")
+    } else {
+      childAction match {
+        case addDelAction: AddDelAction => RepAction(addDelAction.add + addDelAction.delete, Set(node.getRowType.getFieldNames.asScala.last))
+        case repAction: RepAction =>
+          if (repAction.attributes.intersect(node.getRowType.getFieldNames.asScala.dropRight(1).toSet).isEmpty) {
+            RepAction(0, Set.empty)
+          } else {
+            RepAction(repAction.replace, Set(node.getRowType.getFieldNames.asScala.last))
+          }
+      }
+    }
+  }
+
   private def deriveJoinAction(node: Join): PlausibleDeniabilityAction = {
-    val leftAction = _relNodeActionMap(node.getInput(0))
-    val rightAction = _relNodeActionMap(node.getInput(1))
+    var rightIndex = 1
+    var leftAction = _relNodeActionMap(node.getInput(1 - rightIndex))
+    var rightAction = _relNodeActionMap(node.getInput(rightIndex))
 
     val joinKeys = extractJoinKeys(node, node.getCondition)
-    val leftJoinKeys = joinKeys.map((left, _) => left).toSet
-    val rightJoinKeys = joinKeys.map((_, right) => right).toSet
-    val leftMaxFreq = leftJoinKeys.map(key => _relNodeMaxFreqMap(node.getInput(0))(key)).min
-    val rightMaxFreq = rightJoinKeys.map(key => _relNodeMaxFreqMap(node.getInput(1))(key)).min
+    var leftJoinKeys = joinKeys.map((left, _) => left).toSet
+    var rightJoinKeys = joinKeys.map((_, right) => right).toSet
+    var leftMaxFreq = leftJoinKeys.map(key => _relNodeMaxFreqMap(node.getInput(0))(key)).min
+    var rightMaxFreq = rightJoinKeys.map(key => _relNodeMaxFreqMap(node.getInput(1))(key)).min
 
-    // T-Join1
-//    if (leftAction.isInstanceOf[PubAction] && rightAction.isInstanceOf[PubAction]) {
-//      return PubAction()
-//    }
+    // If there is an AddDel action, then place it on the left
+    if (rightAction.isInstanceOf[AddDelAction]) {
+      rightIndex = 0
 
-    // T-Join2
-//    if (leftAction.isInstanceOf[AddDelAction] && rightAction.isInstanceOf[PubAction]) {
-//      val addDel = leftAction.asInstanceOf[AddDelAction]
-//      return AddDelAction(addDel.add * rightMaxFreq, addDel.delete * rightMaxFreq)
-//    }
+      val tempAction = leftAction
+      leftAction = rightAction
+      rightAction = tempAction
 
-//    if (rightAction.isInstanceOf[AddDelAction] && leftAction.isInstanceOf[PubAction]) {
-//      val addDel = rightAction.asInstanceOf[AddDelAction]
-//      return AddDelAction(addDel.add * leftMaxFreq, addDel.delete * leftMaxFreq)
-//    }
+      val tempJoinKeys = leftJoinKeys
+      leftJoinKeys = rightJoinKeys
+      rightJoinKeys = tempJoinKeys
 
-    // T-Join3, T-Join4
-//    if (leftAction.isInstanceOf[RepAction] && rightAction.isInstanceOf[PubAction]) {
-//      val rep = leftAction.asInstanceOf[RepAction]
-//
-//      // T-Join3
-//      if (rep.attributes.intersect(leftJoinKeys).isEmpty) {
-//        return RepAction(rep.replace * rightMaxFreq, rep.attributes)
-//      // T-Join4
-//      } else {
-//        return AddDelAction(rep.replace * rightMaxFreq, rep.replace * rightMaxFreq)
-//      }
-//    }
+      val tempMaxFreq = leftMaxFreq
+      leftMaxFreq = rightMaxFreq
+      rightMaxFreq = tempMaxFreq
+    }
 
-//    if (rightAction.isInstanceOf[RepAction] && leftAction.isInstanceOf[PubAction]) {
-//      val rep = rightAction.asInstanceOf[RepAction]
-//
-//      // T-Join3
-//      if (rep.attributes.intersect(rightJoinKeys).isEmpty) {
-//        return RepAction(rep.replace * leftMaxFreq, rep.attributes)
-//      // T-Join4
-//      } else {
-//        return AddDelAction(rep.replace * leftMaxFreq, rep.replace * leftMaxFreq)
-//      }
-//    }
-
-    // T-Join-Key
-    if (_refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
-      if (leftAction.isInstanceOf[AddDelAction]) {
-        return leftAction
-      }
-
-      if (leftAction.isInstanceOf[RepAction] && rightAction.isInstanceOf[AddDelAction]) {
-        if (rightAction.asInstanceOf[AddDelAction].delete > 0 && !leftAction.asInstanceOf[RepAction].attributes.contains(leftJoinKeys.toList.last)) {
-          throw Exception(s"${leftJoinKeys.toList.last} cannot be public.")
+    // Derive the action
+    leftAction match {
+      case leftAddDel: AddDelAction =>
+        // T-Key1
+        if (_refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
+          leftAddDel
+        } else {
+          rightAction match {
+            // T-Join1
+            case rightAddDel: AddDelAction =>
+              AddDelAction(leftAddDel.add * rightMaxFreq + rightAddDel.add * leftMaxFreq,
+                leftAddDel.delete * rightMaxFreq + rightAddDel.delete * leftMaxFreq)
+            case rightRep: RepAction =>
+              // T-Key2
+              if (_refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))
+                && rightRep.attributes.contains(rightJoinKeys.toList.last) && leftAddDel.add == 0) {
+                RepAction(rightRep.replace, rightRep.attributes.union(node.getInput(rightIndex).getRowType.getFieldNames.asScala.toSet))
+              // T-Join2
+              } else {
+                AddDelAction(leftAddDel.add * rightMaxFreq + rightRep.replace * leftMaxFreq,
+                  leftAddDel.delete * rightMaxFreq + rightRep.replace * leftMaxFreq)
+              }
+          }
         }
-
-        return leftAction
-      }
-
-      if (leftAction.isInstanceOf[RepAction] && rightAction.isInstanceOf[RepAction]) {
-        return RepAction(leftAction.asInstanceOf[RepAction].replace, leftAction.asInstanceOf[RepAction].attributes.union(rightAction.asInstanceOf[RepAction].attributes))
-      }
-    }
-
-    if (_refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
-      if (rightAction.isInstanceOf[AddDelAction]) {
-        return rightAction
-      }
-
-      if (rightAction.isInstanceOf[RepAction] && leftAction.isInstanceOf[AddDelAction]) {
-        if (leftAction.asInstanceOf[AddDelAction].delete > 0 && !rightAction.asInstanceOf[RepAction].attributes.contains(rightJoinKeys.toList.last)) {
-          throw Exception(s"${rightJoinKeys.toList.last} cannot be public.")
+      case leftRep: RepAction =>
+        rightAction match {
+          case rightRep: RepAction =>
+            // T-Key3
+            if (_refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
+              RepAction(leftRep.replace, leftRep.attributes.union(rightRep.attributes))
+            } else {
+              // T-Join3
+              if (!leftRep.attributes.contains(leftJoinKeys.toList.last) && !rightRep.attributes.contains(rightJoinKeys.toList.last)) {
+                RepAction(leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq,
+                  leftRep.attributes.union(rightRep.attributes))
+              // T-Join4
+              } else {
+                AddDelAction(leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq,
+                  leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq)
+              }
+            }
         }
-
-        return rightAction
-      }
-
-      if (rightAction.isInstanceOf[RepAction] && leftAction.isInstanceOf[RepAction]) {
-        return RepAction(rightAction.asInstanceOf[RepAction].replace, rightAction.asInstanceOf[RepAction].attributes.union(leftAction.asInstanceOf[RepAction].attributes))
-      }
     }
-
-    // T-Join5
-    if (leftAction.isInstanceOf[AddDelAction] && rightAction.isInstanceOf[AddDelAction]) {
-      val leftAddDel = leftAction.asInstanceOf[AddDelAction]
-      val rightAddDel = rightAction.asInstanceOf[AddDelAction]
-      return AddDelAction(leftAddDel.add * rightMaxFreq + rightAddDel.add * leftMaxFreq, leftAddDel.delete * rightMaxFreq + rightAddDel.delete * leftMaxFreq)
-    }
-
-    // T-Join6
-    if (leftAction.isInstanceOf[AddDelAction] && rightAction.isInstanceOf[RepAction]) {
-      val addDel = leftAction.asInstanceOf[AddDelAction]
-      val rep = rightAction.asInstanceOf[RepAction]
-      return AddDelAction(addDel.add * rightMaxFreq + rep.replace * leftMaxFreq, addDel.delete * rightMaxFreq + rep.replace * leftMaxFreq)
-    }
-
-    if (rightAction.isInstanceOf[AddDelAction] && leftAction.isInstanceOf[RepAction]) {
-      val addDel = rightAction.asInstanceOf[AddDelAction]
-      val rep = leftAction.asInstanceOf[RepAction]
-      return AddDelAction(addDel.add * leftMaxFreq + rep.replace * rightMaxFreq, addDel.delete * leftMaxFreq + rep.replace * rightMaxFreq)
-    }
-
-    // T-Join7, T-Join8, T-Join9
-    if (leftAction.isInstanceOf[RepAction] && rightAction.isInstanceOf[RepAction]) {
-      val leftRep = leftAction.asInstanceOf[RepAction]
-      val rightRep = rightAction.asInstanceOf[RepAction]
-
-      // T-Join7
-      if (leftRep.attributes.intersect(leftJoinKeys).isEmpty && rightRep.attributes.intersect(rightJoinKeys).isEmpty) {
-        return RepAction(leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq, leftRep.attributes.union(rightRep.attributes))
-      // T-Join8
-      } else {
-        return AddDelAction(leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq, leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq)
-      }
-    }
-
-    // Default to Pub, although cases should be exhaustive
-    throw Exception("No matching Join rule")
   }
 
   override def visit(node: RelNode, ordinal: Int, parent: RelNode): Unit = {
@@ -200,6 +190,7 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
         case filterNode: Filter => deriveSelectAction(filterNode)
         case projectNode: Project => deriveProjectAction(projectNode)
         case joinNode: Join => deriveJoinAction(joinNode)
+        case aggregateNode: LogicalAggregate => deriveAggregateAction(aggregateNode)
         // Default to child action
         case _ => relNodeActionMap(node.getInput(0))
       }

@@ -3,7 +3,7 @@ package CustomDP4SQL.Interface
 import CustomDP4SQL.Calcite.RelAlgebraMapper
 import CustomDP4SQL.Common.SchemaMapper
 import CustomDP4SQL.DataModel.Schema.{Datatype, Relation, Schema}
-import CustomDP4SQL.Inference.{ActionCalculator, SensitivityCalculator}
+import CustomDP4SQL.Inference.{ActionCalculator, NoiseCalculator, SensitivityCalculator}
 import org.apache.calcite.plan.RelOptUtil
 import org.apache.calcite.sql.SqlExplainLevel
 
@@ -147,14 +147,16 @@ object CommandLineInterface {
             val sql = config.queries(queryNames(input))
             val schemaPlus = RelAlgebraMapper.createCalciteSchema(schema, config)
             val rootNode = RelAlgebraMapper.sqlToRelNode(sql, schemaPlus)
-            val sensitivityCalculator = SensitivityCalculator()
+            val sensitivityCalculator = SensitivityCalculator(schema)
+            val noiseCalculator = NoiseCalculator()
 
             config.privacy_models.foreach((name, path) => {
               val privacyModel = schemaMapper.yamlToPrivacyModel(path)
               val stabilityCalculator = ActionCalculator(config, privacyModel)
               val relNodeActionMap = stabilityCalculator.deriveActionsForTree(rootNode)
-              val sensitivity = sensitivityCalculator.computeSensitivity(rootNode, relNodeActionMap(rootNode))
-              println(s"[$name] Sensitivity: ${sensitivity}")
+              val sensitivity = sensitivityCalculator.computeSensitivity(rootNode, relNodeActionMap)
+              val noise = noiseCalculator.computeNoise(sensitivity)
+              println(s"[$name] Sensitivity: ${sensitivity}, Noise: ${noise}")
             })
           } else  {
             println("Invalid query selection.")
