@@ -39,5 +39,13 @@ queries:
   INNER JOIN course ON s_cid = c_cid
   INNER JOIN enrollment ON s_sid = e_sid
   WHERE c_title LIKE 'NLP'
-  GROUP BY e_uid
+  GROUP BY s_fid
+  "
+  4: "
+  SELECT COUNT(e_review)
+  FROM section
+  INNER JOIN course ON s_cid = c_cid
+  INNER JOIN enrollment ON s_sid = e_sid
+  WHERE c_title LIKE 'NLP'
+  GROUP BY s_fid
   "

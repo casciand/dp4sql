@@ -3,7 +3,7 @@ relations:
     "global_entity": true
     "privacy_policy":
       "name": "REP"
-      "attributes": []
+      "attributes": ["u_name", "u_major"]
     "attributes":
       - "name": "u_uid"
         "max_frequency": 1

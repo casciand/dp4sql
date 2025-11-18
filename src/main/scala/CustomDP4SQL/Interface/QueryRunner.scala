@@ -25,7 +25,8 @@ object QueryRunner {
 
     queryNames.foreach(query => {
       println(s"q$query")
-      val writer = new PrintWriter(new File(s"results/tpch_q$query.csv"))
+      val sensitivityWriter = new PrintWriter(new File(s"results/university/q${query}_sensitivity.csv"))
+      val noiseWriter = new PrintWriter(new File(s"results/university/q${query}_noise.csv"))
       val sql = config.queries(query)
       val schemaPlus = RelAlgebraMapper.createCalciteSchema(schema, config)
       val rootNode = RelAlgebraMapper.sqlToRelNode(sql, schemaPlus)
@@ -38,24 +39,31 @@ object QueryRunner {
           val stabilityCalculator = ActionCalculator(config, privacyModel)
           val relNodeActionMap = stabilityCalculator.deriveActionsForTree(rootNode)
           val sensitivity = sensitivityCalculator.computeSensitivity(rootNode, relNodeActionMap)
+          println(s"[$name] Sensitivity: ${sensitivity}")
 
           if (name.contains("baseline")) {
             val relNodeActionMap = stabilityCalculator.deriveActionsForTree(rootNode, true)
             val sensitivity = sensitivityCalculator.computeSensitivity(rootNode, relNodeActionMap)
+            println(s"[PrivateSQL $name] Sensitivity: ${sensitivity}")
 
-            writer.print(name + "_psql,")
-            writer.println((1 to 1000)
+            sensitivityWriter.println(name + "_psql," + sensitivity.last)
+
+            noiseWriter.print(name + "_psql,")
+            noiseWriter.println((1 to 10)
               .map(_ => noiseCalculator.computeNoise(sensitivity).last)
               .mkString(","))
           }
 
-          writer.print(name + ",")
-          writer.println((1 to 1000)
+          sensitivityWriter.println(name + "," + sensitivity.last)
+
+          noiseWriter.print(name + ",")
+          noiseWriter.println((1 to 10)
             .map(_ => noiseCalculator.computeNoise(sensitivity).last)
             .mkString(","))
         })
 
-        writer.close()
+        sensitivityWriter.close()
+        noiseWriter.close()
       } catch {
         case _: Throwable => println("ERROR")
       }

@@ -2,7 +2,8 @@ relations:
   - "name": "student"
     "global_entity": true
     "privacy_policy":
-      "name": "DEL"
+      "name": "REP"
+      "attributes": ["u_name", "u_major"]
     "attributes":
       - "name": "u_uid"
         "max_frequency": 1
@@ -14,7 +15,8 @@ relations:
   - "name": "faculty"
     "global_entity": false
     "privacy_policy":
-      "name": "DEL"
+      "name": "REP"
+      "attributes": ["f_salary"]
     "attributes":
       - "name": "f_fid"
         "max_frequency": 1
@@ -26,7 +28,8 @@ relations:
   - "name": "course"
     "global_entity": false
     "privacy_policy":
-      "name": "DEL"
+      "name": "REP"
+      "attributes": []
     "attributes":
       - "name": "c_cid"
         "max_frequency": 1
@@ -38,7 +41,8 @@ relations:
   - "name": "section"
     "global_entity": false
     "privacy_policy":
-      "name": "DEL"
+      "name": "REP"
+      "attributes": []
     "attributes":
       - "name": "s_sid"
         "max_frequency": 1
@@ -53,7 +57,7 @@ relations:
     "global_entity": false
     "privacy_policy":
       "name": "REP"
-      "attributes": ["e_uid", "e_sid", "e_review", "e_grade"]
+      "attributes": ["e_review", "e_grade"]
     "attributes":
       - "name": "e_eid"
         "max_frequency": 1

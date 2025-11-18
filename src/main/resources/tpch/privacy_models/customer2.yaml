@@ -55,8 +55,7 @@ relations:
   - "name": "supplier"
     "global_entity": false
     "privacy_policy":
-      "name": "REP"
-      "attributes": ["s_acctbal"]
+      "name": "DEL"
     "attributes":
       - "name": "s_suppkey"
         "max_frequency": 1
@@ -77,7 +76,7 @@ relations:
     "global_entity": false
     "privacy_policy":
       "name": "REP"
-      "attributes": ["ps_supplycost"]
+      "attributes": ["ps_suppkey"]
     "attributes":
       - "name": "ps_partkey"
         "max_frequency": 4
@@ -93,7 +92,8 @@ relations:
   - "name": "customer"
     "global_entity": true
     "privacy_policy":
-      "name": "DEL"
+      "name": "REP"
+      "attributes": ["c_name", "c_address", "c_nationkey", "c_phone", "c_acctbal", "c_mktsegment", "c_comment"]
     "attributes":
       - "name": "c_custkey"
         "max_frequency": 1
@@ -116,7 +116,7 @@ relations:
     "global_entity": false
     "privacy_policy":
       "name": "REP"
-      "attributes": ["o_custkey"]
+      "attributes": ["o_custkey", "o_orderstatus", "o_totalprice", "o_clerk", "o_shippriority"]
     "attributes":
       - "name": "o_orderkey"
         "max_frequency": 1
@@ -141,7 +141,7 @@ relations:
     "global_entity": false
     "privacy_policy":
       "name": "REP"
-      "attributes": ["l_orderkey"]
+      "attributes": ["l_suppkey"]
     "attributes":
       - "name": "l_orderkey"
         "max_frequency": 7

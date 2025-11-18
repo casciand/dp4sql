@@ -104,8 +104,9 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
   }
 
   private def deriveJoinAction(node: Join): PlausibleDeniabilityAction = {
+    var leftIndex = 0
     var rightIndex = 1
-    var leftAction = _relNodeActionMap(node.getInput(1 - rightIndex))
+    var leftAction = _relNodeActionMap(node.getInput(leftIndex))
     var rightAction = _relNodeActionMap(node.getInput(rightIndex))
 
     val joinKeys = extractJoinKeys(node, node.getCondition)
@@ -116,6 +117,7 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
 
     // If there is an AddDel action, then place it on the left
     if (rightAction.isInstanceOf[AddDelAction]) {
+      leftIndex = 1
       rightIndex = 0
 
       val tempAction = leftAction
@@ -147,7 +149,7 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
               // T-Key2
               if (_refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))
                 && rightRep.attributes.contains(rightJoinKeys.toList.last) && leftAddDel.add == 0) {
-                RepAction(rightRep.replace, rightRep.attributes.union(node.getInput(rightIndex).getRowType.getFieldNames.asScala.toSet))
+                RepAction(rightRep.replace, rightRep.attributes.union(node.getInput(leftIndex).getRowType.getFieldNames.asScala.toSet))
               // T-Join2
               } else {
                 AddDelAction(leftAddDel.add * rightMaxFreq + rightRep.replace * leftMaxFreq,
@@ -161,6 +163,8 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
             // T-Key3
             if (_refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
               RepAction(leftRep.replace, leftRep.attributes.union(rightRep.attributes))
+            } else if (_refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
+              RepAction(rightRep.replace, rightRep.attributes.union(leftRep.attributes))
             } else {
               // T-Join3
               if (!leftRep.attributes.contains(leftJoinKeys.toList.last) && !rightRep.attributes.contains(rightJoinKeys.toList.last)) {

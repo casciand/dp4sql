@@ -17,11 +17,11 @@ schema_path: "src/main/resources/tpch/schema.yaml"
 
 privacy_models:
   baseline_customer: "src/main/resources/tpch/privacy_models/baseline_customer.yaml"
-#  baseline_supplier: "src/main/resources/tpch/privacy_models/baseline_supplier.yaml"
+  baseline_supplier: "src/main/resources/tpch/privacy_models/baseline_supplier.yaml"
   customer1: "src/main/resources/tpch/privacy_models/customer1.yaml"
   customer2: "src/main/resources/tpch/privacy_models/customer2.yaml"
-  customer3: "src/main/resources/tpch/privacy_models/customer3.yaml"
-  customer4: "src/main/resources/tpch/privacy_models/customer4.yaml"
+  supplier1: "src/main/resources/tpch/privacy_models/supplier1.yaml"
+  supplier2: "src/main/resources/tpch/privacy_models/supplier2.yaml"
 
 queries:
   1: "
@@ -66,9 +66,6 @@ queries:
   "
   16: "
   SELECT
-          p_brand,
-          p_type,
-          p_size,
           COUNT(DISTINCT ps_suppkey) AS supplier_cnt
   FROM
           partsupp
