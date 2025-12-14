@@ -98,12 +98,6 @@ relations:
           "onto": false
           "nullable": false
           "unique": false
-      - "name": "s_term"
-        "datatype":
-          "name": "text"
-          "max_length": 64
-          "nullable": false
-          "unique": false
 
   - "name": "enrollment"
     "identifier": [ "e_eid" ]

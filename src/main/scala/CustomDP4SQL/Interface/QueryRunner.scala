@@ -57,7 +57,7 @@ object QueryRunner {
           sensitivityWriter.println(name + "," + sensitivity.last)
 
           noiseWriter.print(name + ",")
-          noiseWriter.println((1 to 10)
+          noiseWriter.println((1 to 100)
             .map(_ => noiseCalculator.computeNoise(sensitivity).last)
             .mkString(","))
         })

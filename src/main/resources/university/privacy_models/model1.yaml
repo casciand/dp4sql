@@ -46,8 +46,6 @@ relations:
         "max_frequency": 3
       - "name": "s_cid"
         "max_frequency": 2
-      - "name": "s_term"
-        "max_frequency": 50
 
   - "name": "enrollment"
     "global_entity": false
@@ -57,7 +55,7 @@ relations:
       - "name": "e_eid"
         "max_frequency": 1
       - "name": "e_sid"
-        "max_frequency": 50
+        "max_frequency": 20
       - "name": "e_uid"
         "max_frequency": 6
       - "name": "e_grade"

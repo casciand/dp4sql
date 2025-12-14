@@ -21,7 +21,7 @@ class SensitivityCalculator(schema: Schema) {
         if (action.attributes.intersect(groupingAttrs).isEmpty) {
           0
         } else {
-          action.replace
+          2 * action.replace
         }
     }
   }

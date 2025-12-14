@@ -2,6 +2,7 @@ package CustomDP4SQL.Visitor
 
 import CustomDP4SQL.PrivacyModel.Action.{AddDelAction, PlausibleDeniabilityAction, RepAction}
 import CustomDP4SQL.Representation.{Edge, RefConstr}
+import org.apache.calcite.adapter.enumerable.EnumerableTableScan
 import org.apache.calcite.rel.core.{Filter, Join, Project}
 import org.apache.calcite.rel.logical.LogicalAggregate
 import org.apache.calcite.rel.{RelNode, RelVisitor}
@@ -71,11 +72,11 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
     val projectionAttrs = node.getRowType.getFieldNames.asScala.toSet
 
     childAction match {
-      case action: RepAction =>
-        if (action.attributes.intersect(projectionAttrs).nonEmpty) {
-          RepAction(action.replace, action.attributes.intersect(projectionAttrs))
+      case addDelAction: AddDelAction => addDelAction
+      case repAction: RepAction =>
+        if (repAction.attributes.intersect(projectionAttrs).nonEmpty) {
+          RepAction(repAction.replace, repAction.attributes.intersect(projectionAttrs))
         } else RepAction(0, Set.empty)
-      case _ => childAction
     }
   }
 
@@ -97,7 +98,7 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
           if (repAction.attributes.intersect(node.getRowType.getFieldNames.asScala.dropRight(1).toSet).isEmpty) {
             RepAction(0, Set.empty)
           } else {
-            RepAction(repAction.replace, Set(node.getRowType.getFieldNames.asScala.last))
+            RepAction(2 * repAction.replace, Set(node.getRowType.getFieldNames.asScala.last))
           }
       }
     }
@@ -114,6 +115,8 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
     var rightJoinKeys = joinKeys.map((_, right) => right).toSet
     var leftMaxFreq = leftJoinKeys.map(key => _relNodeMaxFreqMap(node.getInput(0))(key)).min
     var rightMaxFreq = rightJoinKeys.map(key => _relNodeMaxFreqMap(node.getInput(1))(key)).min
+    var leftIsTable = node.getInput(leftIndex).isInstanceOf[EnumerableTableScan]
+    var rightIsTable = node.getInput(rightIndex).isInstanceOf[EnumerableTableScan]
 
     // If there is an AddDel action, then place it on the left
     if (rightAction.isInstanceOf[AddDelAction]) {
@@ -131,43 +134,72 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
       val tempMaxFreq = leftMaxFreq
       leftMaxFreq = rightMaxFreq
       rightMaxFreq = tempMaxFreq
+
+      val tempIsTable = leftIsTable
+      leftIsTable = rightIsTable
+      rightIsTable = tempIsTable
     }
 
     // Derive the action
     leftAction match {
       case leftAddDel: AddDelAction =>
         // T-Key1
-        if (_refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
+        if (leftIsTable && _refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
           leftAddDel
         } else {
           rightAction match {
             // T-Join1
             case rightAddDel: AddDelAction =>
-              AddDelAction(leftAddDel.add * rightMaxFreq + rightAddDel.add * leftMaxFreq,
-                leftAddDel.delete * rightMaxFreq + rightAddDel.delete * leftMaxFreq)
+              if (rightIsTable && _refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
+                rightAddDel
+              } else {
+                AddDelAction(leftAddDel.add * rightMaxFreq + rightAddDel.add * leftMaxFreq,
+                  leftAddDel.delete * rightMaxFreq + rightAddDel.delete * leftMaxFreq)
+              }
             case rightRep: RepAction =>
               // T-Key2
-              if (_refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))
-                && rightRep.attributes.contains(rightJoinKeys.toList.last) && leftAddDel.add == 0) {
+//              if (_refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))
+//                && rightRep.attributes.contains(rightJoinKeys.toList.last) && leftAddDel.add == 0) {
+//                RepAction(rightRep.replace, rightRep.attributes.union(node.getInput(leftIndex).getRowType.getFieldNames.asScala.toSet))
+//              // T-Join2
+//              } else {
+              if (rightIsTable && _refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
                 RepAction(rightRep.replace, rightRep.attributes.union(node.getInput(leftIndex).getRowType.getFieldNames.asScala.toSet))
-              // T-Join2
               } else {
                 AddDelAction(leftAddDel.add * rightMaxFreq + rightRep.replace * leftMaxFreq,
                   leftAddDel.delete * rightMaxFreq + rightRep.replace * leftMaxFreq)
               }
+            //              }
           }
         }
       case leftRep: RepAction =>
         rightAction match {
           case rightRep: RepAction =>
             // T-Key3
-            if (_refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
-              RepAction(leftRep.replace, leftRep.attributes.union(rightRep.attributes))
-            } else if (_refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
+//            if (_refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
+//              RepAction(leftRep.replace, leftRep.attributes.union(rightRep.attributes))
+//            } else
+//              if (_refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
+//              RepAction(rightRep.replace, rightRep.attributes.union(leftRep.attributes))
+//            } else {
+            if (rightRep.replace == 0 && rightRep.attributes.isEmpty && leftRep.replace == 0 && leftRep.attributes.isEmpty) {
+              rightRep
+            } else if (rightIsTable && !leftRep.attributes.contains(leftJoinKeys.toList.last) && _refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
               RepAction(rightRep.replace, rightRep.attributes.union(leftRep.attributes))
-            } else {
+//            } else if (rightIsTable && _refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
+//              rightRep
+            } else if (rightIsTable && _refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
+              RepAction(rightRep.replace, rightRep.attributes.union(node.getInput(leftIndex).getRowType.getFieldNames.asScala.toSet))
+            } else if (leftIsTable && !rightRep.attributes.contains(rightJoinKeys.toList.last) && _refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
+              RepAction(leftRep.replace, leftRep.attributes.union(rightRep.attributes))
+            } else if (leftIsTable && _refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
+              RepAction(leftRep.replace, leftRep.attributes.union(node.getInput(rightIndex).getRowType.getFieldNames.asScala.toSet))
+            }
+//            } else if (leftIsTable && _refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
+//              leftRep
+//            }
               // T-Join3
-              if (!leftRep.attributes.contains(leftJoinKeys.toList.last) && !rightRep.attributes.contains(rightJoinKeys.toList.last)) {
+            else if (!leftRep.attributes.contains(leftJoinKeys.toList.last) && !rightRep.attributes.contains(rightJoinKeys.toList.last)) {
                 RepAction(leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq,
                   leftRep.attributes.union(rightRep.attributes))
               // T-Join4
@@ -178,7 +210,6 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
             }
         }
     }
-  }
 
   override def visit(node: RelNode, ordinal: Int, parent: RelNode): Unit = {
     // Base case

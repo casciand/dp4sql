@@ -42,7 +42,7 @@ class MaxFrequencyVisitor(schemaConstraints: SchemaPrivacyModel) extends RelVisi
   }
 
   private def deriveProjectMaxFreq(node: Project, attr: String): Int = {
-    _relNodeMaxFreqMap(node.getInput(0)).getOrElse(attr, -1)
+    _relNodeMaxFreqMap(node.getInput(0)).getOrElse(attr, 1)
   }
 
   private def deriveJoinMaxFreq(node: Join, attr: String): Int = {
@@ -82,7 +82,7 @@ class MaxFrequencyVisitor(schemaConstraints: SchemaPrivacyModel) extends RelVisi
           case project: Project => deriveProjectMaxFreq(project, attr.toLowerCase)
           case join: Join => deriveJoinMaxFreq(join, attr.toLowerCase)
           // Default to child mmf
-          case _ => _relNodeMaxFreqMap(node.getInput(0)).getOrElse(attr, -1)
+          case _ => _relNodeMaxFreqMap(node.getInput(0)).getOrElse(attr, 1)
         }
 
         _relNodeMaxFreqMap(node) += (attr.toLowerCase -> maxFreq)

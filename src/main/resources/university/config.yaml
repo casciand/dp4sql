@@ -23,17 +23,44 @@ privacy_models:
 
 queries:
   1: "
-  SELECT COUNT(u_uid)
-  FROM student
-  "
-  2: "
   SELECT COUNT(s_sid)
   FROM section
   INNER JOIN course ON s_cid = c_cid
   INNER JOIN enrollment ON s_sid = e_sid
   WHERE c_title LIKE 'LLMs'
   "
+  2: "
+  SELECT COUNT(*)
+  FROM (
+        SELECT e_uid, COUNT(*) AS enroll_count
+        FROM enrollment
+        GROUP BY e_uid
+  )
+  WHERE enroll_count > 3
+  "
   3: "
+  SELECT COUNT(*)
+  FROM (
+        SELECT e_sid AS inner_sid, COUNT(*) AS enroll_count
+        FROM enrollment
+        GROUP BY e_sid
+  )
+  INNER JOIN enrollment ON inner_sid = e_sid
+  WHERE enroll_count < 10
+  GROUP BY e_uid
+  "
+  4: "
+  SELECT COUNT(*)
+  FROM (
+        SELECT e_sid AS inner_sid, COUNT(*) AS enroll_count
+        FROM enrollment
+        GROUP BY e_sid
+  )
+  INNER JOIN enrollment ON inner_sid = e_sid
+  WHERE enroll_count > 15
+  GROUP BY e_review
+  "
+  5: "
   SELECT SUM(e_review)
   FROM section
   INNER JOIN course ON s_cid = c_cid
@@ -41,7 +68,7 @@ queries:
   WHERE c_title LIKE 'NLP'
   GROUP BY s_fid
   "
-  4: "
+  6: "
   SELECT COUNT(e_review)
   FROM section
   INNER JOIN course ON s_cid = c_cid

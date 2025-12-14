@@ -96,12 +96,14 @@ class ActionCalculator(config: Config, privacyModel: SchemaPrivacyModel) {
       action = policy.name match {
         case "DEL" => AddDelAction(0, 1)
         case "REP" => RepAction(1, policy.attributes.get)
+        case "PUB" => RepAction(0, Set.empty)
         case other => throw Error(s"Encountered invalid policy '$other' for global entity table '$table''")
       }
     } else {
       action = policy.name match {
         case "DEL" => AddDelAction(0, getMaximumOwnership(globalEntity, table))
         case "REP" => RepAction(getMaximumOwnership(globalEntity, table), policy.attributes.get)
+        case "PUB" => RepAction(0, Set.empty)
         case other => throw Error(s"Encountered invalid policy '$other' for non-entity table '$table''")
       }
     }
