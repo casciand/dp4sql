@@ -1,0 +1,10 @@
+# TPC-H OpenDP TMLT Results
+
+## Setup Instructions
+
+Before running the Jupyter notebook, you must first prepare the data by running the download script.
+
+### Step 1: Download Data
+
+Run the following script to download the TPC-H raw data and output data
+python ./download_data.py
