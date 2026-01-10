@@ -16,7 +16,12 @@ import scala.math.{max, abs}
 class SensitivityCalculator(schema: Schema) {
   private def getCountSensitivity(groupingAttrs: Set[String], action: PlausibleDeniabilityAction): Int = {
     action match {
-      case action: AddDelAction => max(action.add, action.delete)
+      case action: AddDelAction =>
+        if (groupingAttrs.isEmpty) {
+          max(action.add, action.delete)
+        } else {
+          action.add + action.delete
+        }
       case action: RepAction =>
         if (action.attributes.intersect(groupingAttrs).isEmpty) {
           0
@@ -28,7 +33,7 @@ class SensitivityCalculator(schema: Schema) {
 
   private def getSumSensitivity(groupingAttrs: Set[String], sumAttr: String, lower: Int, upper: Int, action: PlausibleDeniabilityAction): Int = {
     action match {
-      case addDelAction: AddDelAction => max(abs(upper * addDelAction.add - lower * addDelAction.delete), abs(lower * addDelAction.add - upper * addDelAction.delete))
+      case addDelAction: AddDelAction => (addDelAction.add + addDelAction.delete) * max(abs(upper), abs(lower))
       case repAction: RepAction =>
         if (repAction.attributes.intersect(groupingAttrs).isEmpty) {
           if (repAction.attributes.contains(sumAttr)) {
@@ -37,7 +42,7 @@ class SensitivityCalculator(schema: Schema) {
             0
           }
         } else {
-          repAction.replace * max(abs(upper), abs(lower))
+          2 * repAction.replace * max(abs(upper), abs(lower))
         }
     }
   }

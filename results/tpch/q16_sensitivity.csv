@@ -1,8 +1,6 @@
-baseline_customer_psql,0
-baseline_customer,0
-baseline_supplier_psql,160
-baseline_supplier,160
+customer0,0
 customer1,0
 customer2,0
+supplier0,160
 supplier1,160
-supplier2,80
+supplier2,400

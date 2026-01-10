@@ -141,3 +141,46 @@ relations:
           "lower": 1
           "nullable": true
           "unique": false
+
+  - "name": "enrollment2"
+    "identifier": [ "e_eid2" ]
+    "attributes":
+      - "name": "e_eid2"
+        "datatype":
+          "name": "int"
+          "upper": 1000
+          "lower": 0
+          "nullable": false
+          "unique": true
+      - "name": "e_sid2"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "section"
+          "to_attribute": "s_sid"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "e_uid2"
+        "datatype":
+          "name": "foreign_key"
+          "to_relation": "student"
+          "to_attribute": "u_uid"
+          "onto": false
+          "nullable": false
+          "unique": false
+      - "name": "e_grade2"
+        "datatype":
+          "name": "decimal"
+          "upper": 100
+          "lower": 0
+          "scale": 2
+          "precision": 15
+          "nullable": true
+          "unique": false
+      - "name": "e_review2"
+        "datatype":
+          "name": "int"
+          "upper": 5
+          "lower": 1
+          "nullable": true
+          "unique": false

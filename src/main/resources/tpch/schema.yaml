@@ -349,16 +349,16 @@ relations:
       - "name": "l_partkey"
         "datatype":
           "name": "foreign_key"
-          "to_relation": "part"
-          "to_attribute": "p_partkey"
+          "to_relation": "partsupp"
+          "to_attribute": "ps_partkey"
           "onto": false
           "nullable": false
           "unique": false
       - "name": "l_suppkey"
         "datatype":
           "name": "foreign_key"
-          "to_relation": "supplier"
-          "to_attribute": "s_suppkey"
+          "to_relation": "partsupp"
+          "to_attribute": "ps_suppkey"
           "onto": false
           "nullable": false
           "unique": false

@@ -153,7 +153,7 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
               if (rightIsTable && _refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
                 rightAddDel
               } else {
-                AddDelAction(leftAddDel.add * rightMaxFreq + rightAddDel.add * leftMaxFreq,
+                AddDelAction(leftAddDel.add * rightMaxFreq + rightAddDel.add * leftMaxFreq + leftAddDel.add * rightAddDel.add,
                   leftAddDel.delete * rightMaxFreq + rightAddDel.delete * leftMaxFreq)
               }
             case rightRep: RepAction =>
@@ -166,10 +166,9 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
               if (rightIsTable && _refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
                 RepAction(rightRep.replace, rightRep.attributes.union(node.getInput(leftIndex).getRowType.getFieldNames.asScala.toSet))
               } else {
-                AddDelAction(leftAddDel.add * rightMaxFreq + rightRep.replace * leftMaxFreq,
+                AddDelAction(leftAddDel.add * rightMaxFreq + rightRep.replace * leftMaxFreq + leftAddDel.add * rightRep.replace,
                   leftAddDel.delete * rightMaxFreq + rightRep.replace * leftMaxFreq)
               }
-            //              }
           }
         }
       case leftRep: RepAction =>
@@ -204,7 +203,7 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
                   leftRep.attributes.union(rightRep.attributes))
               // T-Join4
               } else {
-                AddDelAction(leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq,
+                AddDelAction(leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq + leftRep.replace * rightRep.replace,
                   leftRep.replace * rightMaxFreq + rightRep.replace * leftMaxFreq)
               }
             }

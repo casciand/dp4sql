@@ -16,8 +16,8 @@ sql_dialects:
 schema_path: "src/main/resources/tpch/schema.yaml"
 
 privacy_models:
-  baseline_customer: "src/main/resources/tpch/privacy_models/baseline_customer.yaml"
-  baseline_supplier: "src/main/resources/tpch/privacy_models/baseline_supplier.yaml"
+  customer0: "src/main/resources/tpch/privacy_models/baseline_customer.yaml"
+  supplier0: "src/main/resources/tpch/privacy_models/baseline_supplier.yaml"
   customer1: "src/main/resources/tpch/privacy_models/customer1.yaml"
   customer2: "src/main/resources/tpch/privacy_models/customer2.yaml"
   supplier1: "src/main/resources/tpch/privacy_models/supplier1.yaml"

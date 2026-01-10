@@ -65,3 +65,20 @@ relations:
         "max_frequency": 10
       - "name": "e_review"
         "max_frequency": 10
+
+  - "name": "enrollment2"
+    "global_entity": false
+    "privacy_policy":
+      "name": "REP"
+      "attributes": ["e_review2", "e_grade2"]
+    "attributes":
+      - "name": "e_eid2"
+        "max_frequency": 1
+      - "name": "e_sid2"
+        "max_frequency": 20
+      - "name": "e_uid2"
+        "max_frequency": 6
+      - "name": "e_grade2"
+        "max_frequency": 10
+      - "name": "e_review2"
+        "max_frequency": 10
