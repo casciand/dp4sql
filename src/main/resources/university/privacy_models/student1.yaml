@@ -2,8 +2,7 @@ relations:
   - "name": "student"
     "global_entity": true
     "privacy_policy":
-      "name": "REP"
-      "attributes": ["u_uid", "u_name", "u_major"]
+      "name": "DEL"
     "attributes":
       - "name": "u_uid"
         "max_frequency": 1
@@ -16,7 +15,7 @@ relations:
     "global_entity": false
     "privacy_policy":
       "name": "REP"
-      "attributes": ["f_fid", "f_name", "f_salary"]
+      "attributes": ["f_name", "f_salary"]
     "attributes":
       - "name": "f_fid"
         "max_frequency": 1
@@ -28,8 +27,7 @@ relations:
   - "name": "course"
     "global_entity": false
     "privacy_policy":
-      "name": "REP"
-      "attributes": ["c_cid", "c_title", "c_credits"]
+      "name": "PUB"
     "attributes":
       - "name": "c_cid"
         "max_frequency": 1
@@ -41,8 +39,7 @@ relations:
   - "name": "section"
     "global_entity": false
     "privacy_policy":
-      "name": "REP"
-      "attributes": ["s_sid", "s_fid", "s_cid"]
+      "name": "PUB"
     "attributes":
       - "name": "s_sid"
         "max_frequency": 1
@@ -55,7 +52,7 @@ relations:
     "global_entity": false
     "privacy_policy":
       "name": "REP"
-      "attributes": ["e_eid", "e_sid", "e_uid", "e_grade", "e_review"]
+      "attributes": ["e_uid", "e_grade"]
     "attributes":
       - "name": "e_eid"
         "max_frequency": 1
@@ -72,7 +69,7 @@ relations:
     "global_entity": false
     "privacy_policy":
       "name": "REP"
-      "attributes": ["e_eid2", "e_sid2", "e_uid2", "e_grade2", "e_review2"]
+      "attributes": ["e_uid2", "e_grade2"]
     "attributes":
       - "name": "e_eid2"
         "max_frequency": 1
@@ -84,3 +81,16 @@ relations:
         "max_frequency": 10
       - "name": "e_review2"
         "max_frequency": 10
+
+  - "name": "scholarship"
+    "global_entity": false
+    "privacy_policy":
+      "name": "REP"
+      "attributes": ["sc_uid", "sc_amount"]
+    "attributes":
+      - "name": "sc_scid"
+        "max_frequency": 1
+      - "name": "sc_uid"
+        "max_frequency": 2
+      - "name": "sc_amount"
+        "max_frequency": 100

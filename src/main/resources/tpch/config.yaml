@@ -19,9 +19,7 @@ privacy_models:
   customer0: "src/main/resources/tpch/privacy_models/baseline_customer.yaml"
   supplier0: "src/main/resources/tpch/privacy_models/baseline_supplier.yaml"
   customer1: "src/main/resources/tpch/privacy_models/customer1.yaml"
-  customer2: "src/main/resources/tpch/privacy_models/customer2.yaml"
   supplier1: "src/main/resources/tpch/privacy_models/supplier1.yaml"
-  supplier2: "src/main/resources/tpch/privacy_models/supplier2.yaml"
 
 queries:
   1: "

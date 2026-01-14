@@ -16,34 +16,12 @@ sql_dialects:
 schema_path: "src/main/resources/university/schema.yaml"
 
 privacy_models:
-  model1: "src/main/resources/university/privacy_models/model1.yaml"
-  model2: "src/main/resources/university/privacy_models/model2.yaml"
-  model3: "src/main/resources/university/privacy_models/model3.yaml"
-  model4: "src/main/resources/university/privacy_models/model4.yaml"
+  baseline1: "src/main/resources/university/privacy_models/baseline1.yaml"
+  baseline2: "src/main/resources/university/privacy_models/baseline2.yaml"
+  student1: "src/main/resources/university/privacy_models/student1.yaml"
 
 queries:
   1: "
-    SELECT COUNT(*)
-    FROM student
-    GROUP BY u_major
-    "
-#  1: "
-#  SELECT COUNT(u_major)
-#  FROM section
-#  INNER JOIN course ON s_cid = c_cid
-#  INNER JOIN enrollment ON s_sid = e_sid
-#  WHERE c_title LIKE 'LLMs'
-#  "
-  2: "
-  SELECT COUNT(*)
-  FROM (
-        SELECT e_uid, COUNT(*) AS enroll_count
-        FROM enrollment
-        GROUP BY e_uid
-  )
-  WHERE enroll_count > 3
-  "
-  3: "
   SELECT COUNT(*)
   FROM (
         SELECT e_sid, COUNT(*) AS enroll_count
@@ -54,7 +32,7 @@ queries:
   WHERE enroll_count < 10
   GROUP BY e_uid2
   "
-  4: "
+  2: "
   SELECT COUNT(*)
   FROM (
         SELECT e_sid, COUNT(*) AS enroll_count
@@ -65,19 +43,25 @@ queries:
   WHERE enroll_count > 15
   GROUP BY e_review2
   "
-  5: "
+  3: "
+  SELECT COUNT(*)
+  FROM (
+        SELECT e_uid, COUNT(*) AS enroll_count
+        FROM enrollment
+        GROUP BY e_uid
+  )
+  INNER JOIN scholarship ON e_uid = sc_uid
+  WHERE enroll_count > 4
+  "
+  4: "
   SELECT SUM(e_review)
   FROM section
-  INNER JOIN course ON s_cid = c_cid
   INNER JOIN enrollment ON s_sid = e_sid
-  WHERE c_title LIKE 'NLP'
   GROUP BY s_fid
   "
-  6: "
+  5: "
   SELECT COUNT(e_review)
   FROM section
-  INNER JOIN course ON s_cid = c_cid
   INNER JOIN enrollment ON s_sid = e_sid
-  WHERE c_title LIKE 'NLP'
   GROUP BY s_fid
   "

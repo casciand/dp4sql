@@ -2,8 +2,7 @@ relations:
   - "name": "nation"
     "global_entity": false
     "privacy_policy":
-      "name": "REP"
-      "attributes": []
+      "name": "PUB"
     "attributes":
       - "name": "n_nationkey"
         "max_frequency": 1
@@ -17,8 +16,7 @@ relations:
   - "name": "region"
     "global_entity": false
     "privacy_policy":
-      "name": "REP"
-      "attributes": []
+      "name": "PUB"
     "attributes":
       - "name": "r_regionkey"
         "max_frequency": 1
@@ -30,8 +28,7 @@ relations:
   - "name": "part"
     "global_entity": false
     "privacy_policy":
-      "name": "REP"
-      "attributes": []
+      "name": "PUB"
     "attributes":
       - "name": "p_partkey"
         "max_frequency": 1
@@ -55,7 +52,8 @@ relations:
   - "name": "supplier"
     "global_entity": true
     "privacy_policy":
-      "name": "DEL"
+      "name": "REP"
+      "attributes": ["s_name", "s_address", "s_nationkey", "s_phone", "s_acctbal"]
     "attributes":
       - "name": "s_suppkey"
         "max_frequency": 1
@@ -75,7 +73,8 @@ relations:
   - "name": "partsupp"
     "global_entity": false
     "privacy_policy":
-      "name": "DEL"
+      "name": "REP"
+      "attributes": ["ps_availqty", "ps_supplycost", "ps_comment"]
     "attributes":
       - "name": "ps_partkey"
         "max_frequency": 4
@@ -114,7 +113,7 @@ relations:
     "global_entity": false
     "privacy_policy":
       "name": "REP"
-      "attributes": ["o_custkey", "o_orderstatus", "o_totalprice", "o_clerk", "o_shippriority"]
+      "attributes": ["o_custkey", "o_orderstatus", "o_totalprice", "o_clerk", "o_shippriority", "o_orderdate", "o_orderpriority", "o_comment"]
     "attributes":
       - "name": "o_orderkey"
         "max_frequency": 1
@@ -138,8 +137,7 @@ relations:
   - "name": "lineitem"
     "global_entity": false
     "privacy_policy":
-      "name": "REP"
-      "attributes": ["l_suppkey"]
+      "name": "DEL"
     "attributes":
       - "name": "l_orderkey"
         "max_frequency": 7

@@ -13,10 +13,11 @@ object QueryRunner {
   /**
    * Entry point.
    *
-   * @param args Command-line arguments: [0] Config YAML path
+   * @param args Command-line arguments: [0] Config YAML path, [1] Results folder path
    */
   def main(args: Array[String]): Unit = {
     val configPath = args(0)
+    val resultsPath = args(1)
     val config = schemaMapper.yamlToConfig(configPath)
     val schema = schemaMapper.yamlToSchema(config.schema_path)
 
@@ -25,8 +26,8 @@ object QueryRunner {
 
     queryNames.foreach(query => {
       println(s"q$query")
-      val sensitivityWriter = new PrintWriter(new File(s"results/university/q${query}_sensitivity.csv"))
-      val noiseWriter = new PrintWriter(new File(s"results/university/q${query}_noise.csv"))
+      val sensitivityWriter = new PrintWriter(new File(s"$resultsPath/q${query}_sensitivity.csv"))
+      val noiseWriter = new PrintWriter(new File(s"$resultsPath/q${query}_noise.csv"))
       val sql = config.queries(query)
       val schemaPlus = RelAlgebraMapper.createCalciteSchema(schema, config)
       val rootNode = RelAlgebraMapper.sqlToRelNode(sql, schemaPlus)
@@ -57,7 +58,7 @@ object QueryRunner {
           sensitivityWriter.println(name + "," + sensitivity.last)
 
           noiseWriter.print(name + ",")
-          noiseWriter.println((1 to 100)
+          noiseWriter.println((1 to 50)
             .map(_ => noiseCalculator.computeNoise(sensitivity).last)
             .mkString(","))
         })

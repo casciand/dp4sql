@@ -1,5 +1,5 @@
-ThisBuild / organization := "cmla.cse.psu.edu"
-ThisBuild / description := "Automatically create privacy model from database schemas and transform sql queries on the database to functionally identical queries with differing privacy costs."
+ThisBuild / organization := ""
+ThisBuild / description := "DP4SQL: Differentially Private SQL with Flexible Privacy Policies"
 ThisBuild / version := "0.1.0-SNAPSHOT"
 
 // Scala 3.3.x is the LTS version, which will be actively maintained for at least until 2026
@@ -9,7 +9,7 @@ lazy val dpsql = (project in file("."))
   .settings(
     libraryDependencies ++= Seq(
       // Used for relational algebra operations
-      "org.apache.calcite" % "calcite-core" % "1.19.0", // TODO: Update to current version
+      "org.apache.calcite" % "calcite-core" % "1.19.0",
       // Used to replace deprecated MultiMap with MultiDict as recommended in deprecate doc text
       "org.scala-lang.modules" %% "scala-collection-contrib" % "0.3.0",
       // Used for SQL parsing
@@ -24,11 +24,10 @@ lazy val dpsql = (project in file("."))
 
       // Used for testing
       "org.scalatest" %% "scalatest" % "3.2.18" % Test,
-      "junit" % "junit" % "4.13.2" % Test, // TODO: REMOVE AFTER MIGRATING TO SCALATEST
+      "junit" % "junit" % "4.13.2" % Test,
       "com.novocode" % "junit-interface" % "0.11" % Test
     ),
 
-    // TODO: UNCOMMENT AND FIX ALL WARNINGS AFTER UPDATING ALL DEPENDENCIES
     scalacOptions ++= Seq(
       "-source:3.0-migration",
       "-rewrite",

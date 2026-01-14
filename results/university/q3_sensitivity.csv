@@ -1,4 +1,3 @@
-model1,360
-model2,792
-model3,0
-model4,240
+baseline1,24
+baseline2,60
+student1,60
