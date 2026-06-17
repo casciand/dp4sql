@@ -9,6 +9,6 @@ class NoiseCalculator {
   }
 
   def computeNoise(sensitivities: List[Int]): List[Double] = {
-    sensitivities.map(sens => abs(laplace(sens)))
+    sensitivities.map(sens => laplace(sens))
   }
 }

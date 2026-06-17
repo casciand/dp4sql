@@ -41,11 +41,6 @@ object CommandLineInterface {
     })
   }
 
-  private def showWelcome(): Unit = {
-    println()
-    println("Welcome to CustomDP4SQL.")
-  }
-
   private def showMenu(): Unit = {
     println("\nOptions:")
     println("1. Show Schema")
@@ -71,8 +66,6 @@ object CommandLineInterface {
     val relationNames = schema.relations.map(_.name)
     val queryNames = config.queries.keys.toList.sortBy(name => name.toInt)
     var running = true
-
-    // showWelcome()
 
     while (running) {
       showMenu()
@@ -156,7 +149,7 @@ object CommandLineInterface {
               val relNodeActionMap = stabilityCalculator.deriveActionsForTree(rootNode)
               val sensitivity = sensitivityCalculator.computeSensitivity(rootNode, relNodeActionMap)
               val noise = noiseCalculator.computeNoise(sensitivity)
-              println(s"[$name] Sensitivity: ${sensitivity}, Noise: ${noise}")
+              println(s"[$name] Sensitivity: ${sensitivity.mkString(",")}, Noise: ${noise.mkString(",")}")
             })
           } else  {
             println("Invalid query selection.")

@@ -16,10 +16,10 @@ sql_dialects:
 schema_path: "src/main/resources/tpch/schema.yaml"
 
 privacy_models:
-  customer0: "src/main/resources/tpch/privacy_models/baseline_customer.yaml"
-  supplier0: "src/main/resources/tpch/privacy_models/baseline_supplier.yaml"
-  customer1: "src/main/resources/tpch/privacy_models/customer1.yaml"
-  supplier1: "src/main/resources/tpch/privacy_models/supplier1.yaml"
+  customer_base: "src/main/resources/tpch/privacy_models/customer_base.yaml"
+  supplier_base: "src/main/resources/tpch/privacy_models/supplier_base.yaml"
+  customer_flex: "src/main/resources/tpch/privacy_models/customer_flex.yaml"
+  supplier_flex: "src/main/resources/tpch/privacy_models/supplier_flex.yaml"
 
 queries:
   1: "

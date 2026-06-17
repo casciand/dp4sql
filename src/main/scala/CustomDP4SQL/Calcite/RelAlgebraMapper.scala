@@ -82,17 +82,10 @@ object RelAlgebraMapper {
       .defaultSchema(rootSchema)
       .build()
 
-//    val hepProgram = new HepProgramBuilder()
-//    hepProgram.addRuleInstance(FilterJoinRule.FILTER_ON_JOIN)
-//    val hepPlanner = new HepPlanner(hepProgram.build())
-
     val planner: Planner = Frameworks.getPlanner(config)
     val sqlNode: SqlNode = planner.parse(sql)
     val validatedSqlNode: SqlNode = planner.validate(sqlNode)
     val relRoot: RelRoot = planner.rel(validatedSqlNode)
-
-//    hepPlanner.setRoot(relRoot.rel)
-//    val optimizedRel: RelNode = hepPlanner.findBestExp()
 
     relRoot.rel
   }
@@ -134,7 +127,6 @@ object RelAlgebraMapper {
         if (index < fieldNames.length) fieldNames(index) else s"$$$index"
 
       // For complex expressions, just return the string representation (no replacement needed)
-
       case call: RexCall =>
         val operator = call.getOperator.toString
         val operands = call.getOperands.asScala.map(operand => replacePlaceholdersWithFieldNames(operand, fieldNames)).mkString(", ")

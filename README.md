@@ -1,7 +1,13 @@
-# DP4SQL: Differentially Private SQL with Flexible Privacy Policies
+# DP4SQL
 
-This repository contains the implementation of the tool described in the paper 
-"DP4SQL: Differentially Private SQL with Flexible Privacy Policies", which is currently under review.
+This repository contains artifacts to reproduce the results presented in the paper 
+"DP4SQL: Differentially Private SQL with Flexible Privacy Policies".
+
+## Introduction
+
+DP4SQL is a differentially private SQL system that allows data curators to better customize the plausible deniability requirements for their relational databases. The user only need provide a SQL query, a privacy policy, and a privacy budget for DP4SQL to compute a sufficient amount of noise that must be added to the query answer in order to satisfy $\epsilon$-differential privacy.
+
+![image](architecture.jpg)
 
 ## Requirements
 
@@ -10,27 +16,28 @@ Before running, ensure you have the following installed:
 - **Java JDK** (11.0.29 recommended)
 - **sbt** (1.11.3 recommended)
 
-## Repository Structure
+## How to Reproduce Results
+
+From the root folder, enter the `/results` directory.
 
 ```
-.
-├── src/
-│   └── main/
-├── results/
-│   ├── tpch/
-│   ├── university/
-│   ├── tpch.sh
-│   ├── university.sh
-│   └── plots.ipynb
-└── repl/
-    ├── tpch.sh
-    └── university.sh
+cd results
 ```
 
-## Run
 
-To regenerate the results from the case study (Section 8), run `results/university.sh`.
-To regenerate the results from the TPC-H evaluation (Section 9), run `results/tpch.sh`.
+Reproduce the results from the case study (Section 8).
+
+```
+chmod ?
+results/university.sh
+```
+
+Reproduce the results from the TPC-H evaluation (Section 9).
+
+```
+results/tpch.sh
+```
+
 The results will be written into the corresponding `university/` and `tpch/` directories.
 
 Alternatively, you can regenerate the results directly with sbt
@@ -38,12 +45,12 @@ Alternatively, you can regenerate the results directly with sbt
 ```
 sbt "runMain CustomDP4SQL.Interface.QueryRunner src/main/resources/<schema>/config.yaml results/<schema>"
 ```
-replacing ``<schema>`` with either `university` or `tpch`.
+replacing ``<schema>`` with either "university" or "tpch".
 
 The Jupyter Notebook at ``results/plots.ipynb`` was used to generate sensitivity and
 error figures.
 
-### REPL
+## How to Reuse Beyond the Paper
 
 This build also supports a playground REPL (Read-Evaluate-Print-Loop) that supports inspecting the university or TPC-H database
 schema and sampling Laplace noise for preset queries.

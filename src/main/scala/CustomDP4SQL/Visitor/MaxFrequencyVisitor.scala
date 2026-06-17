@@ -21,7 +21,7 @@ class MaxFrequencyVisitor(schemaConstraints: SchemaPrivacyModel) extends RelVisi
         operands match {
           case List(left: RexInputRef, right: RexInputRef) =>
             val names = node.getRowType.getFieldNames.asScala.toList
-            val fieldNames = names // .map(_.replaceAll("\\d+", ""))
+            val fieldNames = names
             List((fieldNames(left.getIndex), fieldNames(right.getIndex)))
           case _ => Nil
         }

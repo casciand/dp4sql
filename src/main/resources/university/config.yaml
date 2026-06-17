@@ -18,7 +18,7 @@ schema_path: "src/main/resources/university/schema.yaml"
 privacy_models:
   baseline1: "src/main/resources/university/privacy_models/baseline1.yaml"
   baseline2: "src/main/resources/university/privacy_models/baseline2.yaml"
-  student1: "src/main/resources/university/privacy_models/student1.yaml"
+  flex: "src/main/resources/university/privacy_models/flex.yaml"
 
 queries:
   1: "

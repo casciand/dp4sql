@@ -108,13 +108,6 @@ class ActionCalculator(config: Config, privacyModel: SchemaPrivacyModel) {
       }
     }
 
-    // Coerce Add(0) x Del(0) and Rep(0) to Pub for subsequent inference
-//    action = action match {
-//      case addDelAction: AddDelAction if addDelAction.add == 0 && addDelAction.delete == 0 => PubAction()
-//      case repAction: RepAction if repAction.replace == 0 => PubAction()
-//      case _ => action
-//    }
-
     baseRelationActionMap += table -> action
   }
 

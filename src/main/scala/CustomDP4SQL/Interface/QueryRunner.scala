@@ -40,26 +40,12 @@ object QueryRunner {
           val stabilityCalculator = ActionCalculator(config, privacyModel)
           val relNodeActionMap = stabilityCalculator.deriveActionsForTree(rootNode)
           val sensitivity = sensitivityCalculator.computeSensitivity(rootNode, relNodeActionMap)
-          println(s"[$name] Sensitivity: ${sensitivity}")
 
-//          if (name.contains("baseline")) {
-//            val relNodeActionMap = stabilityCalculator.deriveActionsForTree(rootNode, true)
-//            val sensitivity = sensitivityCalculator.computeSensitivity(rootNode, relNodeActionMap)
-//            println(s"[PrivateSQL $name] Sensitivity: ${sensitivity}")
-//
-//            sensitivityWriter.println(name + "_psql," + sensitivity.last)
-//
-//            noiseWriter.print(name + "_psql,")
-//            noiseWriter.println((1 to 100)
-//              .map(_ => noiseCalculator.computeNoise(sensitivity).last)
-//              .mkString(","))
-//          }
-
-          sensitivityWriter.println(name + "," + sensitivity.last)
-
+          println(s"[$name] Sensitivity: ${sensitivity.mkString(",")}")
+          sensitivityWriter.println(name + "," + sensitivity.mkString(","))
           noiseWriter.print(name + ",")
           noiseWriter.println((1 to 50)
-            .map(_ => noiseCalculator.computeNoise(sensitivity).last)
+            .map(_ => noiseCalculator.computeNoise(sensitivity).mkString(","))
             .mkString(","))
         })
 
