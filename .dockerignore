@@ -1,0 +1,11 @@
+.git
+.idea
+.DS_Store
+**/.ipynb_checkpoints
+target/
+project/target/
+
+# Regenerate these inside the container
+results/university/*.csv
+results/tpch/*.csv
+results/plots/*.pdf

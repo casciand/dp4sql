@@ -33,9 +33,6 @@ object SchemaValidator {
     val tables = collection.mutable.ListBuffer[TableInfo]()
     val collectTablesResult = validateTables(rootNode.get("tables"), foreignKeys, tables)
     collectTablesResult.flatMap(_ => validateForeignKeyGraph(foreignKeys.toList, tables.toList))
-
-    //    validateTables(rootNode.get("tables"), foreignKeys, tables)
-    //      .flatMap(_ => validateForeignKeyGraph(foreignKeys.toList, tables.toList))
   }
 
   private def validateTables(tablesNode: JsonNode, foreignKeys: collection.mutable.ListBuffer[ForeignKeyInfo], tables: collection.mutable.ListBuffer[TableInfo]): Try[Unit] = {
@@ -150,8 +147,6 @@ object SchemaValidator {
         Failure(new IllegalArgumentException(s"Onto foreign key must also be unique for column $columnName in table $tableName"))
       } else Success(())
       _ = foreignKeys += ForeignKeyInfo(tableName, columnName, toTable, toColumn, isUnique, isOnto)
-
-      //_ <- validateForeignKeyReference(tableName, columnName, toTable, toColumn, isUnique, isOnto, foreignKeys, tables)
     } yield ()
   }
 

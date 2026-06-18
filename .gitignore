@@ -3,3 +3,4 @@
 .DS_Store
 project
 target
+**/.ipynb_checkpoints
