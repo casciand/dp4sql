@@ -1,0 +1,28 @@
+type_mappings:
+  text: VARCHAR
+  int: INTEGER
+  decimal: DECIMAL
+  categorical: VARCHAR
+  foreign_key: VARCHAR
+  datetime: DATE
+  default: ANY
+
+sql_dialects:
+  mysql: MysqlSqlDialect.DEFAULT
+  postgresql: PostgresqlSqlDialect.DEFAULT
+  hive: HiveSqlDialect.DEFAULT
+  default: CalciteSqlDialect.DEFAULT
+
+schema_path: "src/main/resources/customer/schema.yaml"
+
+privacy_models:
+  unbounded: "src/main/resources/customer/privacy_models/unbounded.yaml"
+  bounded: "src/main/resources/customer/privacy_models/bounded.yaml"
+  flex: "src/main/resources/customer/privacy_models/flex.yaml"
+
+queries:
+  1: "
+SELECT COUNT(*)
+FROM (SELECT o_item, COUNT(*) AS item_count FROM Orders
+GROUP BY o_item) INNER JOIN Orders2 ON o_item = o_item2 WHERE item_count < 10 GROUP BY o_custkey2
+  "

@@ -93,7 +93,7 @@ relations:
           "upper": 1000
           "lower": 0
           "nullable": false
-          "unique": true
+          "unique": false
       - "name": "p_container"
         "datatype":
           "name": "text"
@@ -171,8 +171,15 @@ relations:
 
 
   - "name": "partsupp"
-    "identifier": [ "ps_partkey", "ps_suppkey" ]
+    "identifier": [ "ps_partsuppkey" ]
     "attributes":
+      - "name": "ps_partsuppkey"
+        "datatype":
+          "name": "int"
+          "upper": 2147483647
+          "lower": -2147483646
+          "nullable": false
+          "unique": true
       - "name": "ps_partkey"
         "datatype":
           "name": "foreign_key"
@@ -195,7 +202,7 @@ relations:
           "upper": 999999
           "lower": 0
           "nullable": false
-          "unique": true
+          "unique": false
       - "name": "ps_supplycost"
         "datatype":
           "name": "decimal"
@@ -327,7 +334,7 @@ relations:
           "upper": 999999
           "lower": 0
           "nullable": false
-          "unique": true
+          "unique": false
       - "name": "o_comment"
         "datatype":
           "name": "text"
@@ -336,8 +343,15 @@ relations:
           "unique": false
 
   - "name": "lineitem"
-    "identifier": [ "l_orderkey", "l_linenumber" ]
+    "identifier": [ "l_lineitemkey" ]
     "attributes":
+      - "name": "l_lineitemkey"
+        "datatype":
+          "name": "int"
+          "upper": 2147483647
+          "lower": -2147483646
+          "nullable": false
+          "unique": true
       - "name": "l_orderkey"
         "datatype":
           "name": "foreign_key"
@@ -368,7 +382,7 @@ relations:
           "upper": 999999
           "lower": 0
           "nullable": false
-          "unique": true
+          "unique": false
       - "name": "l_quantity"
         "datatype":
           "name": "decimal"

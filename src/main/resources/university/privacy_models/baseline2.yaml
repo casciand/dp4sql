@@ -3,7 +3,7 @@ relations:
     "global_entity": true
     "privacy_policy":
       "name": "REP"
-      "attributes": ["u_uid", "u_name", "u_major"]
+      "attributes": ["u_name", "u_major"]
     "attributes":
       - "name": "u_uid"
         "max_frequency": 1
@@ -16,7 +16,7 @@ relations:
     "global_entity": false
     "privacy_policy":
       "name": "REP"
-      "attributes": ["f_fid", "f_name", "f_salary"]
+      "attributes": ["f_name", "f_salary"]
     "attributes":
       - "name": "f_fid"
         "max_frequency": 1
@@ -29,7 +29,7 @@ relations:
     "global_entity": false
     "privacy_policy":
       "name": "REP"
-      "attributes": ["c_cid", "c_title", "c_credits"]
+      "attributes": ["c_title", "c_credits"]
     "attributes":
       - "name": "c_cid"
         "max_frequency": 1
@@ -42,7 +42,7 @@ relations:
     "global_entity": false
     "privacy_policy":
       "name": "REP"
-      "attributes": ["s_sid", "s_fid", "s_cid"]
+      "attributes": ["s_fid", "s_cid"]
     "attributes":
       - "name": "s_sid"
         "max_frequency": 1
@@ -55,7 +55,7 @@ relations:
     "global_entity": false
     "privacy_policy":
       "name": "REP"
-      "attributes": ["e_eid", "e_sid", "e_uid", "e_grade", "e_review"]
+      "attributes": ["e_sid", "e_uid", "e_grade", "e_review"]
     "attributes":
       - "name": "e_eid"
         "max_frequency": 1
@@ -72,7 +72,7 @@ relations:
     "global_entity": false
     "privacy_policy":
       "name": "REP"
-      "attributes": ["e_eid2", "e_sid2", "e_uid2", "e_grade2", "e_review2"]
+      "attributes": ["e_sid2", "e_uid2", "e_grade2", "e_review2"]
     "attributes":
       - "name": "e_eid2"
         "max_frequency": 1
@@ -89,7 +89,7 @@ relations:
     "global_entity": false
     "privacy_policy":
       "name": "REP"
-      "attributes": ["sc_scid", "sc_uid", "sc_amount"]
+      "attributes": ["sc_uid", "sc_amount"]
     "attributes":
       - "name": "sc_scid"
         "max_frequency": 1

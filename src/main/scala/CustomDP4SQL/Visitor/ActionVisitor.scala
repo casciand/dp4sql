@@ -171,11 +171,11 @@ class ActionVisitor(private val _baseRelationActionMap: mutable.Map[String, Plau
             // T-Key3
             if (rightRep.replace == 0 && rightRep.attributes.isEmpty && leftRep.replace == 0 && leftRep.attributes.isEmpty) {
               rightRep
-            } else if (rightIsTable && !leftRep.attributes.contains(leftJoinKeys.toList.last) && _refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
+            } else if (rightIsTable && !rightRep.attributes.contains(rightJoinKeys.toList.last) && _refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
               RepAction(rightRep.replace, rightRep.attributes.union(leftRep.attributes))
             } else if (rightIsTable && _refConstraints.contains(RefConstr(rightJoinKeys.toList.last, leftJoinKeys.toList.last))) {
               RepAction(rightRep.replace, rightRep.attributes.union(node.getInput(leftIndex).getRowType.getFieldNames.asScala.toSet))
-            } else if (leftIsTable && !rightRep.attributes.contains(rightJoinKeys.toList.last) && _refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
+            } else if (leftIsTable && !leftRep.attributes.contains(leftJoinKeys.toList.last) && _refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
               RepAction(leftRep.replace, leftRep.attributes.union(rightRep.attributes))
             } else if (leftIsTable && _refConstraints.contains(RefConstr(leftJoinKeys.toList.last, rightJoinKeys.toList.last))) {
               RepAction(leftRep.replace, leftRep.attributes.union(node.getInput(rightIndex).getRowType.getFieldNames.asScala.toSet))

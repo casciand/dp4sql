@@ -74,6 +74,8 @@ relations:
     "privacy_policy":
       "name": "DEL"
     "attributes":
+      - "name": "ps_partsuppkey"
+        "max_frequency": 1
       - "name": "ps_partkey"
         "max_frequency": 4
       - "name": "ps_suppkey"
@@ -136,6 +138,8 @@ relations:
     "privacy_policy":
       "name": "DEL"
     "attributes":
+      - "name": "l_lineitemkey"
+        "max_frequency": 1
       - "name": "l_orderkey"
         "max_frequency": 7
       - "name": "l_partkey"

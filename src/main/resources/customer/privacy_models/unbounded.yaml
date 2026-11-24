@@ -1,0 +1,38 @@
+relations:
+  - "name": "customer"
+    "global_entity": true
+    "privacy_policy":
+      "name": "DEL"
+    "attributes":
+      - "name": "c_custkey"
+        "max_frequency": 1
+      - "name": "c_name"
+        "max_frequency": 100
+
+  - "name": "orders"
+    "global_entity": false
+    "privacy_policy":
+      "name": "DEL"
+    "attributes":
+      - "name": "o_orderkey"
+        "max_frequency": 1
+      - "name": "o_custkey"
+        "max_frequency": 10
+      - "name": "o_item"
+        "max_frequency": 20
+      - "name": "o_price"
+        "max_frequency": 100
+
+  - "name": "orders2"
+    "global_entity": false
+    "privacy_policy":
+      "name": "DEL"
+    "attributes":
+      - "name": "o_orderkey2"
+        "max_frequency": 1
+      - "name": "o_custkey2"
+        "max_frequency": 10
+      - "name": "o_item2"
+        "max_frequency": 20
+      - "name": "o_price2"
+        "max_frequency": 100
